@@ -16,7 +16,22 @@ HdPacketType 	HdPacket::GetPacketType()
 }
 
 
-
+AccessInfo& AccessInfo::operator=(const AccessInfo &value)
+{
+	this->m_preambleId = value.m_preambleId;
+	this->m_subSlot = value.m_subSlot;
+	this->m_rb = value.m_rb;
+	return *this;
+}
+bool 	AccessInfo::operator==(const AccessInfo &value)
+{
+	bool 	res = true;
+	if((this->m_preambleId != value.m_preambleId)||(this->m_subSlot != value.m_subSlot)||(this->m_rb != value.m_rb))
+	{
+		res = false;
+	}
+	return res;
+}
 std::ostream& operator<<(std::ostream &out,const AccessInfo value)
 {
     out	<<" m_preambleId = "<<value.m_preambleId
@@ -93,6 +108,22 @@ std::string	ResponseBroadcastVehiclesPacket::GetZoneId()
 }
 
 
+WarningsInfo &WarningsInfo::operator=(const WarningsInfo &value)
+{
+	this->m_vehicleId = value.m_vehicleId;
+	this->m_packetId = value.m_packetId;
+	this->m_priorityType = value.m_priorityType;
+	return *this;
+}
+bool 	WarningsInfo::operator==(const WarningsInfo &value)
+{
+	bool res = true;
+	if((this->m_vehicleId != value.m_vehicleId)||(this->m_packetId = value.m_packetId)||(this->m_priorityType = value.m_priorityType))
+	{
+		res = false;
+	}
+	return res;
+}
 std::ostream& operator<<(std::ostream &out,const WarningsInfo value)
 {
     out	<<" m_vehicleId = "<<value.m_vehicleId

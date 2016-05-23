@@ -43,17 +43,12 @@ private:
 struct 	AccessInfo
 {
 	friend 	std::ostream &operator<<(std::ostream &out,const AccessInfo value);
-	void operator=(const AccessInfo &value);
+	AccessInfo &operator=(const AccessInfo &value);
+	bool 	operator==(const AccessInfo &value);
 	unsigned int 	m_preambleId;		// 64 kinds of preamble, from 1 to 64
 	unsigned int 	m_subSlot;		// Assume 10 sub slots in one sub frame, from 1 to 10
 	unsigned int 	m_rb;			// Assume 50 rbs in total, vehicle uses certain rbs to access the channel
 };
-void AccessInfo::operator=(const AccessInfo &value)
-{
-	this->m_preambleId = value.m_preambleId;
-	this->m_subSlot = value.m_subSlot;
-	this->m_rb = value.m_rb;
-}
 class 	AccessRequestPacket : public HdPacket
 {
 
@@ -107,18 +102,13 @@ enum PriorityType
 struct WarningsInfo
 {
 	friend 	std::ostream &operator<<(std::ostream &out,const WarningsInfo value);
-	void operator=(const WarningsInfo &value);
+	WarningsInfo &operator=(const WarningsInfo &value);
+	bool 	operator==(const WarningsInfo &value);
 	unsigned int 	m_vehicleId;
 	unsigned int	m_packetId;
 	PriorityType 	m_priorityType;
 	/* data */
 };
-void WarningsInfo::operator=(const WarningsInfo &value)
-{
-	this->m_vehicleId = value.m_vehicleId;
-	this->m_packetId = value.m_packetId;
-	this->m_priorityType = value.m_priorityType;
-}
 class 	WarningsPacket : public HdPacket
 {
 public:

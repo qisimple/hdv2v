@@ -13,14 +13,14 @@ class HdVehicle
 public:
 	HdVehicle();
 	~HdVehicle();
-	void 	InitVehicle(const std::string &zoneId, const unsigned int &vehicleId, const unsigned int &validTime
-		const double &xLabel, const double &yLabel, const double &velocity,const double sendProbility);
+	void 	InitVehicle(const std::string &zoneId, const unsigned int &vehicleId, const unsigned int &validTime, 
+		const double &xLabel, const double &yLabel, const double &velocity,const double &sendProbility);
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> msg);
 	void 	SendAccessRequestPacket();
 	void 	SendWarningsPacket();
 private:
-	UpdateLog();
+	void 	UpdateLog();
 	std::string 	m_zoneId;
 	unsigned int	m_vehicleId;
 	unsigned int	m_validTime;		// Unit is ms
@@ -31,6 +31,7 @@ private:
 	int	m_totalPacketNum;	
 	int 	m_efficientPacketNum;		// If all vehicles in its AR correctly receive the packet, access packet is not involved
 	int 	m_failPacketNum;	// If it didn't get radio resource within certain time or not all vehicles in its AR correctly receive the packet
+	int 	m_totalReceivePacketNum;	// Num of received different packet
 	unsigned int 	m_nextPacketId;
 	unsigned int 	m_totalDelay;	// no larger than validTime
 	std::map<unsigned int, unsigned int> m_packetSentLog;	// PacketId is key, remaining time is value;
