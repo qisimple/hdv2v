@@ -75,7 +75,7 @@ void 	HdRsuScenario::ParseTraceFile()
 				xLabel = lineInfo[5];
 				yLabel = lineInfo[6];
 				unsigned int len = lineInfo[7].size();
-				velocity = lineInfo[7].substr(0,len-1);
+				velocity = lineInfo[7];
 				hdVehicleInfo->vehicleId =(unsigned int) strtol(nodeId.c_str(), NULL, 10);
 				hdVehicleInfo->xLabel = strtod(xLabel.c_str(), NULL);
 				hdVehicleInfo->yLabel = strtod(yLabel.c_str(), NULL);
