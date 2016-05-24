@@ -5,7 +5,7 @@
 
 namespace ns3 {
 
-class HdRsu
+class HdRsu : public SimpleRefCount<HdRsu>
 {
 public:
 	HdRsu();

@@ -13,6 +13,7 @@ def build(bld):
         'model/hd-rsu.cc',
         'model/hd-vehicle.cc',
         'model/hd-packet.cc',
+        'model/hd-rsu-scenario.cc',
         'helper/lte4v2x-helper.cc',
         ]
 
@@ -28,6 +29,7 @@ def build(bld):
         'model/hd-rsu.h',
         'model/hd-vehicle.h',
         'model/hd-packet.h',
+        'model/hd-rsu-scenario.h',
         'helper/lte4v2x-helper.h',
         ]
 

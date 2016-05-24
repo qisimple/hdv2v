@@ -8,7 +8,7 @@
 
 namespace ns3 {
 
-class HdVehicle
+class HdVehicle : public SimpleRefCount<HdVehicle>
 {
 public:
 	HdVehicle();
