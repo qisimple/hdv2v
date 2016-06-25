@@ -89,7 +89,7 @@ public:
 	std::vector<unsigned int> GetRb(const unsigned int &vehicleId);
 	bool 	GetRelayNode(const unsigned int &vehicleId);
 	void 	AddControlInfo(const ControlInfo &value);
-	void 	AddRelayNodeId(const unsigned int &vehicleId);
+	void 	AddRelayNodeId(const std::vector<unsigned int> &vehicleId);
 private:
 	std::vector<ControlInfo> 	m_schedule;
 	std::vector<unsigned int> 	m_relayNodeId;
@@ -128,8 +128,9 @@ struct WarningsInfo
 	bool 	operator==(const WarningsInfo &value);
 	unsigned int 	m_vehicleId;
 	unsigned int	m_packetId;
-	std::vector<unsigned int> m_rbs;
+	unsigned int	m_rb;
 	PriorityType 	m_priorityType;
+	unsigned int 	m_time;			// Pakcet is valid when current time is small than m_time;
 	/* data */
 };
 class 	WarningsPacket : public HdPacket
@@ -147,6 +148,7 @@ public:
 	RelayPacket(const std::vector<WarningsInfo> &relay);
 	virtual 	~RelayPacket();
 	std::vector<WarningsInfo> GetRelay();
+	bool 	GetExist(unsigned int vehicleId, unsigned int packetId);
 private:
 	std::vector<WarningsInfo>	m_relay;
 	// m_relayNodeId;		// Id of relay node

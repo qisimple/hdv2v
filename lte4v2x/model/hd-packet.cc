@@ -79,8 +79,9 @@ std::ostream& operator<<(std::ostream &out,const ControlInfo &value)
 	out	<<" m_vehicleId = "<<value.m_vehicleId << std::endl;
 	for(unsigned int i=0; i< m_rbs.size(); i++)
 	{
-		out <<" rb: "<<m_rbs[i] << std::endl;
+		out <<" rb: "<<m_rbs[i];
 	}
+	out<<endl;
 	return out;
 }
 ControlPacket::ControlPacket()
@@ -120,10 +121,9 @@ void 	ControlPacket::AddControlInfo(const ControlInfo &value);
 	ControlInfo m_value = value;
 	m_rbs.push_back(m_value);
 }
-void 	ControlPacket::AddRelayNodeId(const unsigned int &vehicleId);
+void 	ControlPacket::AddRelayNodeId(const std::vector<unsigned int> &vehicleId);
 {
-	unsigned int	m_value = vehicleId;
-	m_relayNodeId.push_back(m_value);
+	m_relayNodeId = vehicleId;
 } 	
 
 
@@ -165,15 +165,16 @@ WarningsInfo &WarningsInfo::operator=(const WarningsInfo &value)
 {
 	this->m_vehicleId = value.m_vehicleId;
 	this->m_packetId = value.m_packetId;
-	this->m_rbs = value.m_rbs;
+	this->m_rb = value.m_rb;
 	this->m_priorityType = value.m_priorityType;
+	this->m_time = value.m_time;
 	return *this;
 }
 bool 	WarningsInfo::operator==(const WarningsInfo &value)
 {
 	bool res = true;
 	if((this->m_vehicleId != value.m_vehicleId)||(this->m_packetId = value.m_packetId)||
-		(this->m_rbs = value.m_rbs)||(this->m_priorityType = value.m_priorityType))
+		(this->m_rbs = value.m_rbs)||(this->m_priorityType = value.m_priorityType)||(this->m_time = value.m_time))
 	{
 		res = false;
 	}
@@ -183,12 +184,13 @@ std::ostream& operator<<(std::ostream &out,const WarningsInfo &value)
 {
 	out	<<" m_vehicleId = "<<value.m_vehicleId
 		<<" m_packetId = "<<value.m_packetId
-		<<" m_priorityType = "<<value.m_priorityType
-		<<std::endl;
+		<<" m_priorityType = "<<value.m_priorityType;
+
 	for(unsigned int i=0; i< m_rbs.size(); i++)
 	{
-		out <<" rb: "<<m_rbs[i] << std::endl;
+		out <<" rb: "<<m_rbs[i];
 	}
+	out <<" m_time = "<<value.m_time<<endl;
     return out;
 }
 WarningsPacket::WarningsPacket(const WarningsInfo &warningsInfo)
@@ -213,4 +215,19 @@ std::vector<WarningsInfo>	RelayPacket::GetRelay()
 {
 	return 	m_relay;
 }
+bool 	RelayPacket::GetExist(unsigned int vehicleId, unsigned int packetId)
+{
+	bool res = false;
+	for(unsigned int i=0;i<m_relay.size();i++)
+	{
+		if(m_relay[i].m_vehicleId == vehicleId && m_relay[i].m_packetId == packetId)
+		{
+			res = true;
+			break;
+		}
+	}
+	return res;
+}
+
+
 }//namespace ns3
