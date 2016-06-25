@@ -1,6 +1,7 @@
 #ifndef HD_VEHICLE_H
 #define HD_VEHICLE_H
 
+#include "ns3/simulator.h"
 #include "hd-packet.h"
 #include "ns3/random-variable-stream.h"
 #include "ns3/rng-seed-manager.h"
@@ -11,17 +12,19 @@ namespace ns3 {
 class HdVehicle : public SimpleRefCount<HdVehicle>
 {
 public:
-	HdVehicle();
+	HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
+		double xLabel, double yLabel, double velocity,double sendProbility);
 	~HdVehicle();
-	void 	InitVehicle(const std::string &zoneId, const unsigned int &vehicleId, const unsigned int &validTime, 
-		const double &xLabel, const double &yLabel, const double &velocity,const double &sendProbility);
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> msg);
-	void 	SendAccessRequestPacket();
+	void 	SendAccessPacket();
 	void 	SendWarningsPacket();
+	void 	SendRelayPacket();
 private:
 	void 	UpdateLog();
-	std::string 	m_zoneId;
+	// std::string 	m_zoneId;
+	bool 	m_relayNode;		// If it is assigned as relayNode;
+	unsigned int 	m_rsuId;		// the rsu it belongs to
 	unsigned int	m_vehicleId;
 	unsigned int	m_validTime;		// Unit is ms
 	double 	m_xLabel;	// pos of vehicle

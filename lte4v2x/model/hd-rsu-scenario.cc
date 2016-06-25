@@ -117,26 +117,26 @@ void 	HdRsuScenario::ParseParFile()		// Deal with m_zones, m_rsus, m_validTime, 
 	}
 }
 
-void 	HdRsuScenario::BuildRtoZMap()
-{
-	for(unsigned int i=0;i<m_rsus.size();i++)
-	{
-		unsigned int 	rsuId = m_rsus[i]->rsuId;
-		std::vector<std::string> zoneId;
-		zoneId.push_back(m_zones[rsuId-1]);
-		zoneId.push_back(m_zones[rsuId]);
-		m_rsuWithZones.insert(std::make_pair<unsigned int ,std::vector<std::string> >(rsuId, zoneId));
-	}
-}
+// void 	HdRsuScenario::BuildRtoZMap()
+// {
+// 	for(unsigned int i=0;i<m_rsus.size();i++)
+// 	{
+// 		unsigned int 	rsuId = m_rsus[i]->rsuId;
+// 		std::vector<std::string> zoneId;
+// 		zoneId.push_back(m_zones[rsuId-1]);
+// 		zoneId.push_back(m_zones[rsuId]);
+// 		m_rsuWithZones.insert(std::make_pair<unsigned int ,std::vector<std::string> >(rsuId, zoneId));
+// 	}
+// }
 
-void 	HdRsuScenario::BuildVtoZMap()
-{
-	// for(unsigned int i=0;i<m_vehicles.size(); i++)
-	// {
-	// 	unsigned int 	vehicleId = m_vehicles[i]->vehicleId;
+// void 	HdRsuScenario::BuildVtoZMap()
+// {
+// 	for(unsigned int i=0;i<m_vehicles.size(); i++)
+// 	{
+// 		unsigned int 	vehicleId = m_vehicles[i]->vehicleId;
 
-	// }
-}
+// 	}
+// }
 
 // void 	HdRsuScenario::CreateHdVehicles()	// create m_hdVehicle based on m_vehicles
 // {

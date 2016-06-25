@@ -4,7 +4,8 @@
 
 namespace ns3{
 
-HdVehicle::HdVehicle()
+HdVehicle::HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
+		double xLabel, double yLabel, double velocity,double sendProbility))
 :m_totalPacketNum(0),
 m_efficientPacketNum(0),
 m_failPacketNum(0),
@@ -16,12 +17,7 @@ m_accessLog(),
 m_packetNotSentLog()
 {
 	m_ptrRandom = CreateObject<UniformRandomVariable>();
-}
-HdVehicle::~HdVehicle(){}
-void 	HdVehicle::InitVehicle(const std::string &zoneId, const unsigned int &vehicleId, const unsigned int &validTime,
-		const double &xLabel, const double &yLabel, const double &velocity, const double &sendProbility)
-{
-	m_zoneId = zoneId;
+	m_rsuId = rsuId;
 	m_vehicleId = vehicleId;
 	m_validTime = validTime;
 	m_xLabel = xLabel;
@@ -29,6 +25,7 @@ void 	HdVehicle::InitVehicle(const std::string &zoneId, const unsigned int &vehi
 	m_velocity = velocity;
 	m_sendProbility = sendProbility;
 }
+HdVehicle::~HdVehicle(){}
 
 void 	HdVehicle::Update()
 {
@@ -40,13 +37,21 @@ void 	HdVehicle::Update()
 		unsigned int 	validTime = m_validTime;
 		m_packetNotSentLog.insert(std::pair<unsigned int, unsigned int>(packetId,validTime));
 	}
+	// Simulator::Schedule()
 }
 
 void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 {
 	switch (msg->GetPacketType())
 	{
-		case ACCESS_RESULT_PACKET:
+		case CONTROL_PACKET:
+		case WARNINGS_PACKET:
+		{
+			if(m_relayNode == true)
+			{
+				
+			}
+		}
 		case RELAY_PACKET:
 		default:
 		{}

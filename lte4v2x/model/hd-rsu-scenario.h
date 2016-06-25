@@ -41,8 +41,8 @@ public:
 private:
 	void 	ParseTraceFile();	// Deal with m_vehicles
 	void 	ParseParFile();		// Deal with m_zones, m_rsus, m_validTime, m_sendProbility
-	void 	BuildRtoZMap();		// Deal with m_rsuWithZones
-	void 	BuildVtoZMap();		//Deal with m_vehicleWithZones
+	// void 	BuildRtoZMap();		// Deal with m_rsuWithZones
+	// void 	BuildVtoZMap();		//Deal with m_vehicleWithZones
 	// void 	CreateHdVehicles();
 	// void 	CreateHdRsus();	
 	// void 	BuildZtoVMap();		// Deal with m_zoneWithVehicles

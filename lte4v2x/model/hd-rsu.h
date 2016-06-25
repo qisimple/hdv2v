@@ -8,10 +8,9 @@ namespace ns3 {
 class HdRsu : public SimpleRefCount<HdRsu>
 {
 public:
-	HdRsu();
+	HdRsu( unsigned int rsuId, double xLabel,  double yLabel);
 	~HdRsu();
-	void 	InitRsu(const unsigned int &rsuId, const std::string &leftZoneId, const std::string &rightZoneId,
-			const double &xLabel, const double &yLabel);
+	void 	InitRsu();
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> msg);
 	void 	SendAccessResultPacket();
@@ -19,8 +18,9 @@ public:
 	void 	SendRelayPacket();
 private:
 	unsigned int 	m_rsuId;
-	std::string 	m_leftZoneId;
-	std::string	m_rightZoneId;
+	std::vector<std::string> m_zoneId;
+	// std::string 	m_leftZoneId;
+	// std::string	m_rightZoneId;
 	double		m_xLabel;
 	double 		m_yLabel;
 	std::map<unsigned int, std::vector<AccessInfo> > 	m_accessLog;	//  key is timeslot, value is received accessInfos

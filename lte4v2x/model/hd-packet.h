@@ -12,13 +12,21 @@ namespace ns3 {
 
 enum HdPacketType
 {
-	ACCESS_REQUEST_PACKET,	// From vehicle to RSU
-	ACCESS_RESULT_PACKET,	// From Rsu to vehicles
-	NOTIFY_BROADCAST_VEHICLES_PACKET,	// From RSU to its adjacent RSUs
-	RESPONSE_BROADCAST_VEHICLES_PACKET,	// From its adfacent RSUs to  RSU itself
+	ACCESS_PACKET,	// From vehicle to RSU
+	CONTROL_PACKET,	// From Rsu to vehicles
+	// NOTIFY_BROADCAST_VEHICLES_PACKET,	// From RSU to its adjacent RSUs
+	// RESPONSE_BROADCAST_VEHICLES_PACKET,	// From its adfacent RSUs to  RSU itself
 	WARNINGS_PACKET,	// Vehicles broadcast warnings
 	RELAY_PACKET		// Rsu broadcast its relayed packets
 };
+
+enum PriorityType
+{
+	HIGH,			// Warnings 
+	MIDDLE,		// Beacons
+	LOW			// Normal 
+};
+
 class 	HdPacket : public SimpleRefCount<HdPacket>
 {
 public:
@@ -42,63 +50,77 @@ private:
 
 struct 	AccessInfo
 {
-	friend 	std::ostream &operator<<(std::ostream &out,const AccessInfo value);
+	friend 	std::ostream &operator<<(std::ostream &out,const AccessInfo &value);
 	AccessInfo &operator=(const AccessInfo &value);
 	bool 	operator==(const AccessInfo &value);
-	unsigned int 	m_preambleId;		// 64 kinds of preamble, from 1 to 64
-	unsigned int 	m_subSlot;		// Assume 10 sub slots in one sub frame, from 1 to 10
-	unsigned int 	m_rb;			// Assume 50 rbs in total, vehicle uses certain rbs to access the channel
+	unsigned int 	m_vehicleId;
+	unsigned int 	m_rsuId;		// The rsu a vehicle belongs to
+	unsigned int	m_num;		//  Required number of rbs
+	double 	m_xLabel;			// Pos of vehicle
+	double 	m_yLabel;
+	PriorityType 	m_priorityType;
 };
-class 	AccessRequestPacket : public HdPacket
+class 	AccessPacket : public HdPacket
 {
 
 public:
-	AccessRequestPacket(const AccessInfo &accessInfo);
-	virtual	~AccessRequestPacket();
+	AccessPacket(const AccessInfo &accessInfo);
+	virtual	~AccessPacket();
 	AccessInfo	GetAccess();
 private:
 	AccessInfo 	m_accessInfo;
 };
-class 	AccessResultPacket : public HdPacket
+
+
+struct 	ControlInfo 
+{
+	friend 	std::ostream &operator<<(std::ostream &out,const ControlInfo &value);
+	ControlInfo &operator=(const ControlInfo &value);
+	bool 	operator==(const ControlInfo &value);
+	unsigned int 	m_vehicleId;
+	std::vector<unsigned int> 	m_rbs;
+	/* data */
+};
+class 	ControlPacket : public HdPacket
 {
 public:
-	AccessResultPacket(const  std::map< AccessInfo , std::vector<unsigned int> > &schedule);
-	virtual	~AccessResultPacket();
-	std::vector<unsigned int> GetRb(const AccessInfo &accessInfo);
+	ControlPacket();
+	virtual	~ControlPacket();
+	std::vector<unsigned int> GetRb(const unsigned int &vehicleId);
+	bool 	GetRelayNode(const unsigned int &vehicleId);
+	void 	AddControlInfo(const ControlInfo &value);
+	void 	AddRelayNodeId(const unsigned int &vehicleId);
 private:
-	std::map< AccessInfo , std::vector<unsigned int> > m_schedule;	// 
+	std::vector<ControlInfo> 	m_schedule;
+	std::vector<unsigned int> 	m_relayNodeId;
 };
 
 
-class 	NotifyBroadcastVehiclesPacket : public HdPacket
-{
-public:
-	NotifyBroadcastVehiclesPacket(const std::string &zoneId, const std::vector<AccessInfo> &accessVehicles);
-	virtual 	~NotifyBroadcastVehiclesPacket();
-	std::vector<AccessInfo> GetAccessVechicles();
-	std::string 	GetZoneId();
-private:
-	std::vector<AccessInfo> 	m_accessVehicles;
-	std::string	m_zoneId;
-};
-class 	ResponseBroadcastVehiclesPacket : public HdPacket
-{
-public:
-	ResponseBroadcastVehiclesPacket(const std::string &zoneId, const std::map< AccessInfo , std::vector<unsigned int> > &schedule);
-	virtual 	~ResponseBroadcastVehiclesPacket();
-	std::map< AccessInfo , std::vector<unsigned int> > GetAccessSchedule();
-	std::string 	GetZoneId();
-private:
-	std::map< AccessInfo , std::vector<unsigned int> > m_schedule;
-	std::string	m_zoneId;
-};
+// class 	NotifyBroadcastVehiclesPacket : public HdPacket
+// {
+// public:
+// 	NotifyBroadcastVehiclesPacket(const std::string &zoneId, const std::vector<AccessInfo> &accessVehicles);
+// 	virtual 	~NotifyBroadcastVehiclesPacket();
+// 	std::vector<AccessInfo> GetAccessVechicles();
+// 	std::string 	GetZoneId();
+// private:
+// 	std::vector<AccessInfo> 	m_accessVehicles;
+// 	std::string	m_zoneId;
+// };
+// class 	ResponseBroadcastVehiclesPacket : public HdPacket
+// {
+// public:
+// 	ResponseBroadcastVehiclesPacket(const std::string &zoneId, const std::map< AccessInfo , std::vector<unsigned int> > &schedule);
+// 	virtual 	~ResponseBroadcastVehiclesPacket();
+// 	std::map< AccessInfo , std::vector<unsigned int> > GetAccessSchedule();
+// 	std::string 	GetZoneId();
+// private:
+// 	std::map< AccessInfo , std::vector<unsigned int> > m_schedule;
+// 	std::string	m_zoneId;
+// };
 
 
-enum PriorityType
-{
-	HIGH,
-	LOW
-};
+
 struct WarningsInfo
 {
 	friend 	std::ostream &operator<<(std::ostream &out,const WarningsInfo value);
@@ -106,6 +128,7 @@ struct WarningsInfo
 	bool 	operator==(const WarningsInfo &value);
 	unsigned int 	m_vehicleId;
 	unsigned int	m_packetId;
+	std::vector<unsigned int> m_rbs;
 	PriorityType 	m_priorityType;
 	/* data */
 };
@@ -126,6 +149,7 @@ public:
 	std::vector<WarningsInfo> GetRelay();
 private:
 	std::vector<WarningsInfo>	m_relay;
+	// m_relayNodeId;		// Id of relay node
 };
 
 }// namespace ns3
