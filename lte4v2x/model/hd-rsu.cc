@@ -4,10 +4,11 @@ namespace ns3{
 
 HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId)
 :m_status(true),
-m_usedRb(),
+m_usedRb(0),
 m_assignRb(),
 m_assignRelayNode(),
-m_accessLog()
+m_accessLog(),
+m_vehicle()
 {
 	m_rsuId = rsuId;
 	// m_leftZoneId = leftZoneId;
@@ -41,7 +42,15 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
 		{
 			if(m_status == true)
 			{
-				m_accessLog.push_back(msg->GetAccess());
+				AccessInfo 	acc = msg->GetAccess();
+				double 	x = acc.m_xLabel;
+				for(unsigned int j=0;j<m_zoneId.size();j++)
+				{
+					if(x<(m_zoneId[j]+1)*200 && x>=m_zoneId[j]*200)
+					{
+						m_accessLog[j].push_back(acc);
+					}
+				}
 			}
 			else
 			{
@@ -95,19 +104,118 @@ void 	HdVehicle::StateConvert(bool &relay)
 	}
 }
 
-void	HdVehicle::AssignRbs()
+void	HdVehicle::AssignRbs()		// Round Robin
+{
+	std::map<unsigned int, std::vector<unsigned int> >::iterator it;
+	std::vector<AccessInfo>::iterator 	it_a;
+	for(unsigned int i=0;i<m_usedRb.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
+	{
+		m_usedRb[i] = (m_zoneId[j]%3)*16;
+	}
+	for(unsigned int i=0;i<m_accessLog.size();i++)
+	{
+		bool res = true;
+		bool veh = true;
+		while(res)
+		{
+			if((m_usedRb[i]<(m_zoneId[i]%3)*16+15)&&(veh==true))
+			{
+				// Allocation is not finished
+				unsigned int tmp = m_usedRb[i];
+				for(it_a=m_accessLog[i].begin();it_a!=m_accessLog[i].end();++it_a)
+				{
+					double x = (*it_a).m_xLabel;
+					assert(x>=0);
+					if(m_usedRb[i]<(m_zoneId[i]%3)*16+15)				// Check if zone's rbs has used up
+					{
+						for(it=m_assignRb.begin();it!=m_assignRb.end();it++)
+						{
+							if(it->first == (*it_a).m_vehicleId)
+							{
+								if(it->second.size() < (*it_a).m_num)
+								{
+									m_usedRb[i]++;
+									it->second.push_back(m_usedRb[i]);
+									break;
+								}
+							}
+						}
+						if(it==m_assignRb.end())
+						{
+							std::vector<unsigned int> 	rb;
+							m_usedRb[i]++;
+							rb.push_back(m_usedRb[i]);
+							m_accessLog.insert(make_pair<unsigned int, std::vector<unsigned int> >((*it_a).m_vehicleId, rb));
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+				if(tmp == m_usedRb[i])		// Check if all vehicles has got enough rbs
+				{
+					veh = false;
+				}
+			}
+			else
+			{
+				res = false;
+			}
+		}
+	}
+	m_accessLog.clear();
+}
+
+void 	HdVehicle::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in accessLog)
+{
+	vector<double>	dis;
+	for(unsigned int i=0;i<m_zoneId.size();i++)
+	{
+		double x = 10000;			// Assume the length of scenario is less then 10000
+		unsigned int veh = 1000000;		// Assume the id of veh in scenario is less than 1000000
+		dis.push_back(x);
+		m_assignRelayNode.push_back(veh);
+	}
+	for(unsigned int i=0;i<m_vehicle.size();i++)
+	{
+		for(unsigned int j=0;j<m_zoneId.size();j++)
+		{
+			if(m_vehicle[i].xLabel - m_zoneId[j]*200 < dis[j])
+			{
+				dis[j] = m_vehicle[i].xLabel - m_zoneId[j]*200;
+				m_assignRelayNode[j] = m_vehicle[i].vehicleId;
+			}
+		}
+	}
+}
+
+void 	HdVehicle::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE,
 {
 
 }
 
-void 	HdVehicle::AssignRelayNodes()
+bool	HdVehicle::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
 {
-	
-}
-
-void 	HdPacket::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE,
-{
-
+	bool 	res = false;
+	double 	x = vehicleInfo->xLabel;
+	unsigned int i;
+	for(i=0;i<m_zoneId.size();i++)
+	{
+		if(x<(m_zoneId[i]+1)*200 && x>=m_zoneId[i]*200)
+		{
+			break;
+		}
+	}
+	for(unsigned int j=0;j<m_accessLog[i].size();j++)
+	{
+		if(vehicleInfo->vehicleId == m_accessLog[i].m_vehicleId)
+		{
+			res = true;
+			break;
+		}
+	}
+	return res;
 }
 
 }//namespace ns3

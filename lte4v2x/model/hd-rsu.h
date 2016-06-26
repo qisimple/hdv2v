@@ -23,6 +23,7 @@ private:
 	void 	AssignRbs();
 	void 	AssignRelayNodes();
 	void 	Send(Ptr<HdPacket> &con);
+	bool 	InAccess(const Ptr<HdVehicleInfo> vehicleInfo);
 	unsigned int 		m_rsuId;
 	double		m_xLabel;
 	double 		m_yLabel;
@@ -32,8 +33,9 @@ private:
 	// std::string 	m_leftZoneId;
 	// std::string	m_rightZoneId;
 	std::map<unsigned int, std::vector<unsigned int> > 	m_assignRb;		// Key is vehicleId, value is its assigned rbs
-	std::vector<unsigned int> 	m_assignRelayNode;
-	std::vector<AccessInfo> 	m_accessLog;	//  Value is received accessInfos
+	std::vector<unsigned int> 	m_assignRelayNode;	// VehicleId
+	std::vector<std::vector<AccessInfo> >  	m_accessLog;	//  Value is received accessInfos, they are divided into several zones,it has the same size with m_zoneId
+	std::vector<Ptr<HdVehicleInfo> > 	m_vehicle;
 	// std::map<unsigned int, std::vector<WarningsInfo> > 	m_warningsLog;	// key is timeslot, value is received waringsInfo	
 	/* data */
 };

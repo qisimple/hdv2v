@@ -154,5 +154,22 @@ private:
 	// m_relayNodeId;		// Id of relay node
 };
 
+struct HdRsuInfo: public SimpleRefCount<HdRsuInfo>
+{
+	unsigned int	rsuId;
+	double 	xLabel;
+	double yLabel;
+	/* data */
+};
+
+struct HdVehicleInfo: public SimpleRefCount<HdVehicleInfo>
+{
+	unsigned int	vehicleId;
+	double 	xLabel;
+	double yLabel;
+	double velocity;
+	/* data */
+};
+
 }// namespace ns3
 #endif /* HD_PACKET_H*/

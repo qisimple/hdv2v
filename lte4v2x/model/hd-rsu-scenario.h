@@ -14,22 +14,22 @@
 
 namespace ns3 {
 
-struct HdVehicleInfo: public SimpleRefCount<HdVehicleInfo>
-{
-	unsigned int	vehicleId;
-	double 	xLabel;
-	double yLabel;
-	double velocity;
-	/* data */
-};
+// struct HdVehicleInfo: public SimpleRefCount<HdVehicleInfo>
+// {
+// 	unsigned int	vehicleId;
+// 	double 	xLabel;
+// 	double yLabel;
+// 	double velocity;
+// 	/* data */
+// };
 
-struct HdRsuInfo: public SimpleRefCount<HdRsuInfo>
-{
-	unsigned int	rsuId;
-	double 	xLabel;
-	double yLabel;
-	/* data */
-};
+// struct HdRsuInfo: public SimpleRefCount<HdRsuInfo>
+// {
+// 	unsigned int	rsuId;
+// 	double 	xLabel;
+// 	double yLabel;
+// 	/* data */
+// };
 
 class HdRsuScenario : public SimpleRefCount<HdRsuScenario>
 {
