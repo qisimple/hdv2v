@@ -24,7 +24,7 @@ public:
 private:
 	void 	UpdateLog();
 	void 	StateConvert(bool &relay);
-	void 	Send();
+	void 	Send(Ptr<HdPacket> &hd);
 	// std::string 	m_zoneId;
 	bool 	m_relayNode;		// If it is assigned as relayNode, first bit;	00 -> access; 10 -> control; 11 -> listen; 01 -> relay;
 	bool 	m_relaying;			// If it is in relay procedure, second bit;

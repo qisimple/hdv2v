@@ -4,6 +4,10 @@
 #include "hd-packet.h"
 #include "ns3/simulator.h"
 #include "ns3/nstime.h"
+#include "ns3/simple-ref-count.h"
+#include <vector>
+#include <map>
+#include <string>
 
 namespace ns3 {
 

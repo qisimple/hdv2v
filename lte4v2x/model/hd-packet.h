@@ -139,6 +139,10 @@ public:
 	WarningsPacket(const WarningsInfo &warningsInfo);
 	virtual 	~WarningsPacket();
 	WarningsInfo 	GetWarnings();
+	void	SetRb(unsigned int rb);
+	unsigned int GetTime();
+	unsigned int GetPacketId();
+	unsigned int GetRb();
 private:
 	WarningsInfo 	m_warningsInfo;
 };

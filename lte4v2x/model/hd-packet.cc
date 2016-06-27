@@ -19,18 +19,18 @@ HdPacketType 	HdPacket::GetPacketType()
 AccessInfo& AccessInfo::operator=(const AccessInfo &value)
 {
 	this->m_vehicleId = value.m_vehicleId;
-	this->m_rusId = value.m_rusId;
+	this->m_rsuId = value.m_rsuId;
 	this->m_num = value.m_num;
 	this->m_xLabel = value.m_xLabel;
 	this->m_yLabel = value.m_yLabel;
-	this->m_type = value.m_type;
+	this->m_priorityType = value.m_priorityType;
 	return *this;
 }
 bool 	AccessInfo::operator==(const AccessInfo &value)
 {
 	bool 	res = true;
-	if((this->m_vehicleId != value.m_vehicleId)||(this->m_rusId != value.m_rusId)||(this->m_num != value.m_num)||
-		(this->m_xLabel != value.m_xLabel)||(this->m_yLabel != value.m_yLabel)||(this->m_type != value.m_type))
+	if((this->m_vehicleId != value.m_vehicleId)||(this->m_rsuId != value.m_rsuId)||(this->m_num != value.m_num)||
+		(this->m_xLabel != value.m_xLabel)||(this->m_yLabel != value.m_yLabel)||(this->m_priorityType != value.m_priorityType))
 	{
 		res = false;
 	}
@@ -39,11 +39,11 @@ bool 	AccessInfo::operator==(const AccessInfo &value)
 std::ostream& operator<<(std::ostream &out,const AccessInfo &value)
 {
 	out	<<" m_vehicleId = "<<value.m_vehicleId
-		<<" m_rusId = "<<value.m_rusId
+		<<" m_rsuId = "<<value.m_rsuId
 		<<" m_num = "<<value.m_num
 		<<" m_xLabel = "<<value.m_xLabel
 		<<" m_yLabel = "<<value.m_yLabel
-		<<" m_type = "<<value.m_type
+		<<" m_priorityType = "<<value.m_priorityType
 		<<std::endl;
 	return out;
 }
@@ -77,11 +77,11 @@ bool 	ControlInfo::operator==(const ControlInfo &value)
 std::ostream& operator<<(std::ostream &out,const ControlInfo &value)
 {
 	out	<<" m_vehicleId = "<<value.m_vehicleId << std::endl;
-	for(unsigned int i=0; i< m_rbs.size(); i++)
+	for(unsigned int i=0; i< value.m_rbs.size(); i++)
 	{
-		out <<" rb: "<<m_rbs[i];
+		out <<" rb: "<<value.m_rbs[i];
 	}
-	out<<endl;
+	out<<std::endl;
 	return out;
 }
 ControlPacket::ControlPacket()
@@ -103,7 +103,7 @@ std::vector<unsigned int> 	ControlPacket::GetRb(const unsigned int &vehicleId)
 	}
 	return	m_rbs;
 }
-std::vector<unsigned int> 	ControlPacket::GetRelayNode(const unsigned int &vehicleId)
+bool 	ControlPacket::GetRelayNode(const unsigned int &vehicleId)
 {
 	bool res = false;
 	for(unsigned int i=0;i<m_relayNodeId.size(); i++)
@@ -116,12 +116,12 @@ std::vector<unsigned int> 	ControlPacket::GetRelayNode(const unsigned int &vehic
 	}
 	return	res;
 }
-void 	ControlPacket::AddControlInfo(const ControlInfo &value);
+void 	ControlPacket::AddControlInfo(const ControlInfo &value)
 {
 	ControlInfo m_value = value;
-	m_rbs.push_back(m_value);
+	m_schedule.push_back(m_value);
 }
-void 	ControlPacket::AddRelayNodeId(const std::vector<unsigned int> &vehicleId);
+void 	ControlPacket::AddRelayNodeId(const std::vector<unsigned int> &vehicleId)
 {
 	m_relayNodeId = vehicleId;
 } 	
@@ -174,7 +174,7 @@ bool 	WarningsInfo::operator==(const WarningsInfo &value)
 {
 	bool res = true;
 	if((this->m_vehicleId != value.m_vehicleId)||(this->m_packetId = value.m_packetId)||
-		(this->m_rbs = value.m_rbs)||(this->m_priorityType = value.m_priorityType)||(this->m_time = value.m_time))
+		(this->m_rb = value.m_rb)||(this->m_priorityType = value.m_priorityType)||(this->m_time = value.m_time))
 	{
 		res = false;
 	}
@@ -184,14 +184,11 @@ std::ostream& operator<<(std::ostream &out,const WarningsInfo &value)
 {
 	out	<<" m_vehicleId = "<<value.m_vehicleId
 		<<" m_packetId = "<<value.m_packetId
-		<<" m_priorityType = "<<value.m_priorityType;
-
-	for(unsigned int i=0; i< m_rbs.size(); i++)
-	{
-		out <<" rb: "<<m_rbs[i];
-	}
-	out <<" m_time = "<<value.m_time<<endl;
-    return out;
+		<<" m_rb = "<<value.m_rb
+		<<" m_priorityType = "<<value.m_priorityType
+		<<" m_time = "<<value.m_time
+		<<std::endl;
+ 	return out;
 }
 WarningsPacket::WarningsPacket(const WarningsInfo &warningsInfo)
 {
@@ -203,7 +200,22 @@ WarningsInfo 	WarningsPacket::GetWarnings()
 {
 	return 	m_warningsInfo;
 }
-
+void 	WarningsPacket::SetRb(unsigned int rb)
+{
+	m_warningsInfo.m_rb = rb;
+}
+unsigned int 	WarningsPacket::GetTime()
+{
+	return	m_warningsInfo.m_time;
+}
+unsigned int 	WarningsPacket::GetPacketId()
+{
+	return m_warningsInfo.m_packetId;
+}
+unsigned int 	WarningsPacket::GetRb()
+{
+	return m_warningsInfo.m_rb;
+}
 
 RelayPacket::RelayPacket(const std::vector<WarningsInfo> &relay)
 {

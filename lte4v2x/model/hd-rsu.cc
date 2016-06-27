@@ -1,4 +1,6 @@
 #include "hd-rsu.h"
+#include <cassert>
+#include <utility>
 
 namespace ns3{ 
 
@@ -24,15 +26,15 @@ void 	HdRsu::Update()
 {
 	if(m_status == false)	// Send ControlPacket
 	{
-		Simulator::Schedule(Seconds(0.001),&StateConvert(),m_status);
+		Simulator::Schedule(Seconds(0.001),&HdRsu::StateConvert, this ,m_status);
 		SendControlPacket();
 	}
 	else
 	{
-		Simulator::Schedule(Seconds(0.001),&StateConvert(),m_status);
-		Simulator::Schedule(Seconds(0.001),&UpdateLog());	
+		Simulator::Schedule(Seconds(0.001),&HdRsu::StateConvert, this, m_status);
+		Simulator::Schedule(Seconds(0.001),&HdRsu::UpdateLog, this);	
 	}
-	Simulator::Schedule(Seconds(0.001),&Update());
+	Simulator::Schedule(Seconds(0.001),&HdRsu::Update, this);
 }
 
 void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
@@ -43,7 +45,8 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
 		{
 			if(m_status == true)
 			{
-				AccessInfo 	acc = msg->GetAccess();
+				Ptr<AccessPacket>	accPkt = dynamic_cast<Ptr<AccessPacket> >(msg);
+				AccessInfo 	acc = accPkt->GetAccess();
 				double 	x = acc.m_xLabel;
 				for(unsigned int j=0;j<m_zoneId.size();j++)
 				{
@@ -65,7 +68,7 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
 
 void 	HdRsu::SendControlPacket()
 {
-	Ptr<ControlPacket> con = CreateObject<ControlPacket>();
+	Ptr<ControlPacket> con = Create<ControlPacket>();
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it_rb;	
 	for(it_rb=m_assignRb.begin();it_rb!=m_assignRb.end();)
 	{
@@ -75,8 +78,8 @@ void 	HdRsu::SendControlPacket()
 		con->AddControlInfo(info);
 	}
 	con->AddRelayNodeId(m_assignRelayNode);
-	Ptr<HdPacket> = con;
-	Send(con);
+	Ptr<HdPacket>  hd = con;
+	Send(hd);
 	m_assignRb.clear();
 	m_assignRelayNode.clear();
 }
@@ -98,7 +101,7 @@ void 	HdRsu::UpdateLog()	// Assign at the end of access slot
 	AssignRelayNodes();
 }
 
-void 	HdVehicle::StateConvert(bool &relay)
+void 	HdRsu::StateConvert(bool &relay)
 {
 	if(relay == true)
 	{
@@ -110,13 +113,13 @@ void 	HdVehicle::StateConvert(bool &relay)
 	}
 }
 
-void	HdVehicle::AssignRbs()		// Round Robin
+void	HdRsu::AssignRbs()		// Round Robin
 {
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it;
 	std::vector<AccessInfo>::iterator 	it_a;
-	for(unsigned int i=0;i<m_usedRb.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
+	for(unsigned int i=0;i<m_zoneId.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
 	{
-		m_usedRb[i] = (m_zoneId[j]%3)*16;
+		m_usedRb[i] = (m_zoneId[i]%3)*16;
 	}
 	for(unsigned int i=0;i<m_accessLog.size();i++)
 	{
@@ -151,7 +154,7 @@ void	HdVehicle::AssignRbs()		// Round Robin
 							std::vector<unsigned int> 	rb;
 							m_usedRb[i]++;
 							rb.push_back(m_usedRb[i]);
-							m_accessLog.insert(make_pair<unsigned int, std::vector<unsigned int> >((*it_a).m_vehicleId, rb));
+							m_assignRb.insert(std::make_pair<unsigned int, std::vector<unsigned int> >((*it_a).m_vehicleId, rb));
 						}
 					}
 					else
@@ -173,9 +176,9 @@ void	HdVehicle::AssignRbs()		// Round Robin
 	m_accessLog.clear();
 }
 
-void 	HdVehicle::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in accessLog)
+void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in accessLog)
 {
-	vector<double>	dis;
+	std::vector<double>	dis;
 	for(unsigned int i=0;i<m_zoneId.size();i++)
 	{
 		double x = 10000;			// Assume the length of scenario is less then 10000
@@ -187,21 +190,21 @@ void 	HdVehicle::AssignRelayNodes()	// Best fit vehicle, (Position, not involved
 	{
 		for(unsigned int j=0;j<m_zoneId.size();j++)
 		{
-			if(m_vehicle[i].xLabel - m_zoneId[j]*200 < dis[j])
+			if(m_vehicle[i]->xLabel - m_zoneId[j]*200 < dis[j])
 			{
-				dis[j] = m_vehicle[i].xLabel - m_zoneId[j]*200;
-				m_assignRelayNode[j] = m_vehicle[i].vehicleId;
+				dis[j] = m_vehicle[i]->xLabel - m_zoneId[j]*200;
+				m_assignRelayNode[j] = m_vehicle[i]->vehicleId;
 			}
 		}
 	}
 }
 
-void 	HdVehicle::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE,
+void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE,
 {
 
 }
 
-bool	HdVehicle::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
+bool	HdRsu::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
 {
 	bool 	res = false;
 	double 	x = vehicleInfo->xLabel;
@@ -215,7 +218,7 @@ bool	HdVehicle::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
 	}
 	for(unsigned int j=0;j<m_accessLog[i].size();j++)
 	{
-		if(vehicleInfo->vehicleId == m_accessLog[i].m_vehicleId)
+		if(vehicleInfo->vehicleId == m_accessLog[i][j].m_vehicleId)
 		{
 			res = true;
 			break;

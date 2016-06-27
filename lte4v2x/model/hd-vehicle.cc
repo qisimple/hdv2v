@@ -1,11 +1,13 @@
 #include "hd-vehicle.h"
 #include <cstdio>
 #include <cstring>
+#include <utility>
+#include <cassert>
 
 namespace ns3{
 
 HdVehicle::HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
-		double xLabel, double yLabel, double velocity,double sendProbility))
+		double xLabel, double yLabel, double velocity,double sendProbility)
 :m_relayNode(false),
 m_relaying(false),
 m_totalPacketNum(0),
@@ -39,27 +41,27 @@ void 	HdVehicle::Update()
 		WarningsInfo 	war;
 		war.m_vehicleId = m_vehicleId;
 		war.m_packetId = m_nextPacketId++;
-		war.m_priorityType = PriorityType::HIGH;
-		unsigned int t = (unsigned int)(Simulator::Now()::GetMilliSeconds());		// Check if MilliSecondes() exists in ns3
+		war.m_priorityType = HIGH;
+		unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
 		war.m_time = t + m_validTime;
-		Ptr<WarningsPacket> m_war = CreateObject<WarningsPacket>(war);
+		Ptr<WarningsPacket> m_war = Create<WarningsPacket>(war);
 		m_packetNotSentLog.push_back(m_war);
 		m_totalPacketNum++;
 	}
 	if(m_relayNode == true && m_relaying == false)	// Control step, do nothing
 	{
 		assert(m_accessLog.size()==0);
-		Simulator::Schedule(Seconds(0.001),&StateConvert(),m_relaying);
+		Simulator::Schedule(Seconds(0.001), &HdVehicle::StateConvert, this, m_relaying);
 	}
 	else if(m_relayNode == true && m_relaying == true)	// Listen step, store the received warings
 	{
 		assert(m_accessLog.size()==0);
-		Simulator::Schedule(Seconds(0.001),&StateConvert(),m_relayNode);
+		Simulator::Schedule(Seconds(0.001), &HdVehicle::StateConvert, this, m_relayNode);
 	}
 	else if(m_relayNode == false && m_relaying == true)		// Relay step, relay the received warings
 	{
 		assert(m_accessLog.size()==0);
-		Simulator::Schedule(Seconds(0.001),&StateConvert(),m_relaying);
+		Simulator::Schedule(Seconds(0.001), &HdVehicle::StateConvert, this, m_relaying);
 		SendRelayPacket();		
 	}
 	else
@@ -77,7 +79,7 @@ void 	HdVehicle::Update()
 			// Do nothing
 		}
 	}
-	Simulator::Schedule(Seconds(0.001),&Update());
+	Simulator::Schedule(Seconds(0.001), &HdVehicle::Update, this);
 }
 
 void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
@@ -86,14 +88,16 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 	{
 		case CONTROL_PACKET:
 		{
+			Ptr<ControlPacket>	con = dynamic_cast<Ptr<ControlPacket> >(msg);
 			m_accessLog.clear();
-			m_accessLog = msg->GetRb(m_vehicleId);
-			m_relayNode = msg->GetRelayNode();
+			m_accessLog = con->GetRb(m_vehicleId);
+			m_relayNode = con->GetRelayNode(m_vehicleId);
 			m_relaying = false;
 			break;
 		}
 		case WARNINGS_PACKET:
 		{
+			Ptr<WarningsPacket>	war = dynamic_cast<Ptr<WarningsPacket> >(msg);
 			if(m_relayNode == true && m_relaying == true)
 			{
 				m_packetRelayLog.push_back(msg);
@@ -107,13 +111,14 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 		}
 		case RELAY_PACKET:		// Check the m_packetSentLog, if m_packetSentLog in relayPacket,then take it as a success else take it as a failure;
 		{
+			Ptr<RelayPacket>	relay = dynamic_cast<Ptr<RelayPacket> >(msg);
 			std::map<unsigned int, unsigned int>::iterator it;
 			for(it = m_packetSentLog.begin();it!=m_packetSentLog.end();)
 			{
-				if(msg->GetExist(m_vehicleId, it->first))
+				if(relay->GetExist(m_vehicleId, it->first))
 				{
 					m_efficientPacketNum++;
-					m_totalDelay += validTime - (it->second);
+					m_totalDelay += m_validTime - (it->second);
 					m_packetSentLog.erase(it);
 				}
 				else
@@ -125,7 +130,7 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 		}
 		default:
 		{
-			cout<<"Error Packet type!"<<endl;
+			std::cout<<"Error Packet type!"<<std::endl;
 		}
 	}
 }
@@ -138,8 +143,8 @@ void 	HdVehicle::SendAccessPacket()
 	a.m_num = m_packetNotSentLog.size();
 	a.m_xLabel = m_xLabel;
 	a.m_yLabel = m_yLabel;
-	a.m_priorityType = PriorityType::HIGH;
-	Ptr<AccessPacket> access = CreateObject<AccessPacket>(a);
+	a.m_priorityType = HIGH;
+	Ptr<AccessPacket> access = Create<AccessPacket>(a);
 	Ptr<HdPacket> hd = access;		// type convert from a subclass to a baseclass
 	Send(hd);
 }
@@ -150,10 +155,10 @@ void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLo
 	unsigned int i;
 	for(i=0;i<m_accessLog.size();i++)
 	{
-		m_packetNotSentLog[i].m_rb = m_accessLog[i];
-		Ptr<HdPacket> hd = m_packetSentLog[i];
-		unsigned int t = (unsigned int)(Simulator::Now()::GetMilliSeconds());		// Check if MilliSecondes() exists in ns3
-		m_packetSentLog.insert(make_pair<unsigned int, unsigned int>(m_packetNotSentLog[i].m_packetId,m_packetNotSentLog[i].m_time - t));
+		m_packetNotSentLog[i]->SetRb(m_accessLog[i]);
+		Ptr<HdPacket> hd = m_packetNotSentLog[i];
+		unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
+		m_packetSentLog.insert(std::make_pair<unsigned int, unsigned int>(m_packetNotSentLog[i]->GetPacketId(),m_packetNotSentLog[i]->GetTime() - t));
 		Send(hd);
 	}
 	m_packetNotSentLog.erase(m_packetNotSentLog.begin(),m_packetNotSentLog.begin()+i);
@@ -172,7 +177,7 @@ void	HdVehicle::SendRelayPacket()
 void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_packetRelayLog, remaining valid time minus 1
 {
 	std::map<unsigned int, unsigned int>::iterator it_sent;
-	for(it_sent = m_packetSentLog.begin();it_sent!=m_packetSentLog.end())
+	for(it_sent = m_packetSentLog.begin();it_sent!=m_packetSentLog.end();)
 	{
 		(it_sent->second)--;
 		if(it_sent->second < 0)
@@ -189,7 +194,7 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 	std::vector<Ptr<WarningsPacket> >::iterator it_not;
 	for(it_not=m_packetNotSentLog.begin();it_not!=m_packetNotSentLog.end();)
 	{
-		if((*it_not)->m_time <= Simulator::Now())
+		if((*it_not)->GetTime() <= Simulator::Now())
 		{
 			m_packetNotSentLog.erase(it_not);
 			m_failPacketNum++;
@@ -201,11 +206,12 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 	}
 
 	std::vector<Ptr<HdPacket> >::iterator it_relay;
-	for(it_relay=m_packetNotSentLog.begin();it_relay!=m_packetNotSentLog.end();)
+	for(it_relay=m_packetRelayLog.begin();it_relay!=m_packetRelayLog.end();)
 	{
-		if((*it_relay)->m_time <= Simulator::Now())
+		Ptr<WarningsPacket> war = dynamic_cast<Ptr<WarningsPacket> >(*it_relay);
+		if( war->GetTime() <= Simulator::Now())
 		{
-			m_packetNotSentLog.erase(it_relay);
+			m_packetRelayLog.erase(it_relay);
 		}
 		else
 		{
@@ -226,7 +232,7 @@ void 	HdVehicle::StateConvert(bool &relay)
 	}
 }
 
-void 	HdPacket::Send(Ptr<HdPacket> &hd)			// TO BE CONTINUE,
+void 	HdVehicle::Send(Ptr<HdPacket> &hd)			// TO BE CONTINUE,
 {
 
 }

@@ -31,28 +31,28 @@ namespace ns3 {
 // 	/* data */
 // };
 
-class HdRsuScenario : public SimpleRefCount<HdRsuScenario>
-{
-public:
-	HdRsuScenario(const std::string &traceFile, const std::string &parFile);
-	~HdRsuScenario();
-	void 	Start();
-	void 	CalculateResult();
-private:
-	void 	ParseTraceFile();	// Deal with m_vehicles
-	void 	ParseParFile();		// Deal with m_rsus, m_validTime, m_sendProbility
-	void 	Init();				// Init HdRsu and HdVehicle
-	std::string 	m_traceFile;		//  Sumo trace file
-	std::string 	m_parFile;		// Configure file
-	double 	m_validTime;
-	double 	m_sendProbility;		// We get this from configure file
+// class HdRsuScenario : public SimpleRefCount<HdRsuScenario>
+// {
+// public:
+// 	HdRsuScenario(const std::string &traceFile, const std::string &parFile);
+// 	~HdRsuScenario();
+// 	void 	Start();
+// 	void 	CalculateResult();
+// private:
+// 	void 	ParseTraceFile();	// Deal with m_vehicles
+// 	void 	ParseParFile();		// Deal with m_rsus, m_validTime, m_sendProbility
+// 	void 	Init();				// Init HdRsu and HdVehicle
+// 	std::string 	m_traceFile;		//  Sumo trace file
+// 	std::string 	m_parFile;		// Configure file
+// 	double 	m_validTime;
+// 	double 	m_sendProbility;		// We get this from configure file
 
-	std::vector<Ptr<HdVehicleInfo> > 	m_vehicleInfo;
-	std::vector<Ptr<HdRsuInfo> > 	m_rsuInfo;
-	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > > 	m_hdVehRsu;
+// 	std::vector<Ptr<HdVehicleInfo> > 	m_vehicleInfo;
+// 	std::vector<Ptr<HdRsuInfo> > 	m_rsuInfo;
+// 	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > > 	m_hdVehRsu;
 	
-	/* data */
-};
+// 	/* data */
+// };
 
 }// namespace ns3
 #endif /* HD_RSU_SCENARIO_H*/
