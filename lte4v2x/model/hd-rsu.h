@@ -10,11 +10,12 @@ namespace ns3 {
 class HdRsu : public SimpleRefCount<HdRsu>
 {
 public:
-	HdRsu( unsigned int rsuId, double xLabel,  double yLabel, std::vector<unsigned int> &zoneId);
+	HdRsu( unsigned int rsuId, double xLabel,  double yLabel, std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo);
 	~HdRsu();
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> msg);
 	void 	SendControlPacket();
+	unsigned int 	GetRsuId();
 	// void 	SendNotifyBroadcastVehiclesPacket();
 	// void 	SendRelayPacket();
 private:
@@ -35,7 +36,7 @@ private:
 	std::map<unsigned int, std::vector<unsigned int> > 	m_assignRb;		// Key is vehicleId, value is its assigned rbs
 	std::vector<unsigned int> 	m_assignRelayNode;	// VehicleId
 	std::vector<std::vector<AccessInfo> >  	m_accessLog;	//  Value is received accessInfos, they are divided into several zones,it has the same size with m_zoneId
-	std::vector<Ptr<HdVehicleInfo> > 	m_vehicle;
+	std::vector<Ptr<HdVehicleInfo> > 	m_vehicle;		// All vehicles in the charge of this rsu
 	// std::map<unsigned int, std::vector<WarningsInfo> > 	m_warningsLog;	// key is timeslot, value is received waringsInfo	
 	/* data */
 };

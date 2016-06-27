@@ -2,7 +2,7 @@
 
 namespace ns3{ 
 
-HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId)
+HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo)
 :m_status(true),
 m_usedRb(0),
 m_assignRb(),
@@ -16,6 +16,7 @@ m_vehicle()
 	m_xLabel = xLabel;
 	m_yLabel = yLabel;
 	m_zoneId = zoneId;
+	m_vehicle = vehInfo;
 }
 HdRsu::~HdRsu(){}
 
@@ -85,6 +86,11 @@ void 	HdRsu::SendControlPacket()
 
 // void 	HdRsu::SendRelayPacket()
 // {}
+
+unsigned int 	HdRsu::GetRsuId()
+{
+	return m_rsuId;
+}
 
 void 	HdRsu::UpdateLog()	// Assign at the end of access slot
 {

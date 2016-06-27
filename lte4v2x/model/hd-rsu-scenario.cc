@@ -5,35 +5,24 @@
 namespace ns3{
 
 HdRsuScenario::HdRsuScenario(const std::string &traceFile, const std::string &parFile)
-:m_validTime(0),
+:m_traceFile(traceFile),
+m_parFile(parFile),
+m_validTime(0),
 m_sendProbility(0),
-m_packetLossRate(0),
-m_packetAverageDelay(0),
-m_packetNum(0),
-m_vehicles(),
-m_rsus(),
-m_zones(),
-m_hdVehicle(),
-m_hdRsu(),
-m_zoneWithVehicles(),
-m_zoneWithRsus(),
-m_rsuWithZones(),
-m_vehicleWithZones(),
-m_vehicleWithSurroundedVehicles(),
-m_rsuWithSurroundedRsus()
+m_vehicleInfo(),
+m_rsuInfo(),
+m_hdVehRsu()
 {
-	m_traceFile = traceFile;
-	m_parFile = parFile;
+
 }
 
 HdRsuScenario::~HdRsuScenario(){}
 
 void 	HdRsuScenario::Start()
 {
-	ParseTraceFile();
-	ParseParFile();
-	BuildRtoZMap();
-	BuildVtoZMap();
+	ParseParFile();		// Get HdRsuInfo
+	ParseTraceFile();	//	Get HdVehicleInfo
+	Init();				// Init HdRsu and HdVehicle
 }
 
 void 	HdRsuScenario::CalculateResult()
@@ -80,7 +69,7 @@ void 	HdRsuScenario::ParseTraceFile()
 				hdVehicleInfo->xLabel = strtod(xLabel.c_str(), NULL);
 				hdVehicleInfo->yLabel = strtod(yLabel.c_str(), NULL);
 				hdVehicleInfo->velocity = strtod(velocity.c_str(), NULL);
-				m_vehicles.push_back(hdVehicleInfo);
+				m_vehicleInfo.push_back(hdVehicleInfo);
 			}
 			else
 			{
@@ -91,59 +80,114 @@ void 	HdRsuScenario::ParseTraceFile()
 	file.close ();
 }
 
-void 	HdRsuScenario::ParseParFile()		// Deal with m_zones, m_rsus, m_validTime, m_sendProbility
+void 	HdRsuScenario::ParseParFile()
 {
 	m_validTime = 10;
 	m_sendProbility = 0.1;
-	double xLabel = 0;
+	double xLabel = 500;
 	double yLabel = 0;
-	for(unsigned int i=1; i<5; i++)	// configure m_rsus
+	for(unsigned int i=0; i<3; i++)	// configure m_rsuInfo
 	{
-		xLabel += 200;
+		if(i != 0)
+		{
+			xLabel += 800;
+		}
 		Ptr<HdRsuInfo> hdRsuInfo = Create<HdRsuInfo>();
 		hdRsuInfo->rsuId = i;
 		hdRsuInfo->xLabel = xLabel;
 		hdRsuInfo->yLabel = yLabel;
-		m_rsus.push_back(hdRsuInfo);
-	}
-	std::string 	zoneId("zone"); 
-	for(int i=1; i<6; i++)		// configure m_zones
-	{
-		char 	temp[10];
-		sprintf(temp, "%d", i);
-		std::string 	z(temp);
-		z = zoneId + z;
-		m_zones.push_back(z);	
+		m_rsuInfo.push_back(hdRsuInfo);
 	}
 }
 
-// void 	HdRsuScenario::BuildRtoZMap()
-// {
-// 	for(unsigned int i=0;i<m_rsus.size();i++)
-// 	{
-// 		unsigned int 	rsuId = m_rsus[i]->rsuId;
-// 		std::vector<std::string> zoneId;
-// 		zoneId.push_back(m_zones[rsuId-1]);
-// 		zoneId.push_back(m_zones[rsuId]);
-// 		m_rsuWithZones.insert(std::make_pair<unsigned int ,std::vector<std::string> >(rsuId, zoneId));
-// 	}
-// }
+void	HdRsuScenario::Init()
+{
+	std::vector<unsigned int> 	zoneId;
+	unsigned int rsuId;
+	std::vector<Ptr<HdVehicleInfo> > vehInfo;
+	for(unsigned int i=0;i<m_rsuInfo.size();i++)		// Init HdRsu
+	{
+		zoneId.clear();
+		vehInfo.clear();
+		if(m_rsuInfo[i]->xLabel<800)
+		{
+			for(unsigned int j=0;j<4;j++)
+			{
+				zoneId.push_back(j);
+			}
+		}
+		else if(m_rsuInfo[i]->xLabel<1600)
+		{
+			for(unsigned int j=4;j<8;j++)
+			{
+				zoneId.push_back(j);
+			}
+		}
+		else if(m_rsuInfo[i]->xLabel<2600)
+		{
+			for(unsigned int j=8;j<=12;j++)
+			{
+				zoneId.push_back(j);
+			}
+		}
+		else
+		{
+			// Beyond 
+		}
 
-// void 	HdRsuScenario::BuildVtoZMap()
-// {
-// 	for(unsigned int i=0;i<m_vehicles.size(); i++)
-// 	{
-// 		unsigned int 	vehicleId = m_vehicles[i]->vehicleId;
+		double lboundry = i*800;		// Calculate the boundry of each rsu;
+		double rboundry; 
+		if(i == m_rsuInfo.size()-1)
+		{
+			rboundry = (i+1)*800 + 200;
+		}
+		else
+		{
+			rboundry = (i+1)*800;
+		}
+		for(unsigned int k=0;k<m_vehicleInfo.size();k++)
+		{
+			if((m_vehicleInfo[k]->xLabel >= lboundry) && (m_vehicleInfo[k]->xLabel < rboundry))
+			{
+				vehInfo.push_back(m_vehicleInfo[k]);
+			}
+		}
+		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo);
+		std::vector<Ptr<HdVehicle> > v;
+		m_hdVehRsu.insert(make_pair<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >(rsu, v));
+	}
 
-// 	}
-// }
+	for(unsigned int i=0;i<m_vehicleInfo.size();i++)	// Init HdVehicle
+	{
+		rsuId = 10000;			// Suppose rsuId is less than 10000;
+		if(m_vehicleInfo[i]->xLabel<800)
+		{
+			rsuId = 0;
+		}
+		else if(m_vehicleInfo[i]->xLabel<1600)
+		{
+			rsuId = 1;
+		}
+		else if(m_vehicleInfo[i]->xLabel<2600)
+		{
+			rsuId = 2;
+		}
+		else
+		{
+			// Beyond 
+		}
 
-// void 	HdRsuScenario::CreateHdVehicles()	// create m_hdVehicle based on m_vehicles
-// {
-// 	for(unsigned int i=0;i<m_vehicles.size();++i)
-// 	{
-// 		Ptr<HdVehicle> hdVehicle = Create<HdVehicle>(m_vehicles[i]) 
-// 	}
-// }
+		Ptr<HdVehicle> veh  = Create<HdVehicle>(rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, 
+												m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility);
+		std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
+		for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();it++)
+		{
+			if(it->first->GetRsuId() == rsuId)
+			{
+				(it->second).push_back(veh);
+			}
+		}
+	}
+}
 
 }//namespace ns3
