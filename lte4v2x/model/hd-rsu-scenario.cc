@@ -25,6 +25,12 @@ void 	HdRsuScenario::Start()
 	Init();				// Init HdRsu and HdVehicle
 }
 
+
+/* There are two way to calculate result: 
+one is focus on one vehicle, m_receivedPacketNum/sum_of_surroundings(m_totalPacketNum)
+the other is average_of_all(vehicles)
+TO Be Finished
+*/
 void 	HdRsuScenario::CalculateResult()
 {
 
