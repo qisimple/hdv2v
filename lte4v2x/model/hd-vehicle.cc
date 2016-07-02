@@ -3,6 +3,7 @@
 #include <cstring>
 #include <utility>
 #include <cassert>
+#include "ns3/simulation-singleton.h"
 
 namespace ns3{
 
@@ -88,7 +89,7 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 	{
 		case CONTROL_PACKET:
 		{
-			Ptr<ControlPacket>	con = dynamic_cast<Ptr<ControlPacket> >(msg);
+			Ptr<ControlPacket>	con = DynamicCast<ControlPacket>(msg);
 			m_accessLog.clear();
 			m_accessLog = con->GetRb(m_vehicleId);
 			m_relayNode = con->GetRelayNode(m_vehicleId);
@@ -97,7 +98,7 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 		}
 		case WARNINGS_PACKET:
 		{
-			Ptr<WarningsPacket>	war = dynamic_cast<Ptr<WarningsPacket> >(msg);
+			Ptr<WarningsPacket>	war = DynamicCast<WarningsPacket>(msg);
 			if(m_relayNode == true && m_relaying == true)
 			{
 				m_packetRelayLog.push_back(msg);
@@ -111,7 +112,7 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
 		}
 		case RELAY_PACKET:		// Check the m_packetSentLog, if m_packetSentLog in relayPacket,then take it as a success else take it as a failure;
 		{
-			Ptr<RelayPacket>	relay = dynamic_cast<Ptr<RelayPacket> >(msg);
+			Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
 			std::map<unsigned int, unsigned int>::iterator it;
 			for(it = m_packetSentLog.begin();it!=m_packetSentLog.end();)
 			{
@@ -208,7 +209,7 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 	std::vector<Ptr<HdPacket> >::iterator it_relay;
 	for(it_relay=m_packetRelayLog.begin();it_relay!=m_packetRelayLog.end();)
 	{
-		Ptr<WarningsPacket> war = dynamic_cast<Ptr<WarningsPacket> >(*it_relay);
+		Ptr<WarningsPacket> war = DynamicCast<WarningsPacket>(*it_relay);
 		if( war->GetTime() <= Simulator::Now())
 		{
 			m_packetRelayLog.erase(it_relay);

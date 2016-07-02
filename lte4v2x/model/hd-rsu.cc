@@ -1,6 +1,7 @@
 #include "hd-rsu.h"
 #include <cassert>
 #include <utility>
+#include "ns3/simulation-singleton.h"
 
 namespace ns3{ 
 
@@ -45,7 +46,7 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
 		{
 			if(m_status == true)
 			{
-				Ptr<AccessPacket>	accPkt = dynamic_cast<Ptr<AccessPacket> >(msg);
+				Ptr<AccessPacket>	accPkt = DynamicCast<AccessPacket>(msg);
 				AccessInfo 	acc = accPkt->GetAccess();
 				double 	x = acc.m_xLabel;
 				for(unsigned int j=0;j<m_zoneId.size();j++)

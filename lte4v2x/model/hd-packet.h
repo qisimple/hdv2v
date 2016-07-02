@@ -27,7 +27,7 @@ enum PriorityType
 	LOW			// Normal 
 };
 
-class 	HdPacket : public SimpleRefCount<HdPacket>
+class 	HdPacket:public SimpleRefCount<HdPacket>
 {
 public:
 	HdPacket ();
