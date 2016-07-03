@@ -168,6 +168,8 @@ WarningsInfo &WarningsInfo::operator=(const WarningsInfo &value)
 	this->m_rb = value.m_rb;
 	this->m_priorityType = value.m_priorityType;
 	this->m_time = value.m_time;
+	this->m_xLabel = value.m_xLabel;
+	this->m_yLabel = value.m_yLabel;
 	return *this;
 }
 bool 	WarningsInfo::operator==(const WarningsInfo &value)
@@ -187,6 +189,8 @@ std::ostream& operator<<(std::ostream &out,const WarningsInfo &value)
 		<<" m_rb = "<<value.m_rb
 		<<" m_priorityType = "<<value.m_priorityType
 		<<" m_time = "<<value.m_time
+		<<" m_xLabel = "<<value.m_xLabel
+		<<" m_yLabel = "<<value.m_yLabel
 		<<std::endl;
  	return out;
 }
@@ -215,6 +219,14 @@ unsigned int 	WarningsPacket::GetPacketId()
 unsigned int 	WarningsPacket::GetRb()
 {
 	return m_warningsInfo.m_rb;
+}
+double 		WarningsPacket::GetXLabel()
+{
+	return m_warningsInfo.m_xLabel;
+}
+double 		WarningsPacket::GetYLabel()
+{
+	return m_warningsInfo.m_yLabel;
 }
 
 RelayPacket::RelayPacket(const std::vector<WarningsInfo> &relay)

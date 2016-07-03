@@ -131,6 +131,8 @@ struct WarningsInfo
 	unsigned int	m_rb;
 	PriorityType 	m_priorityType;
 	unsigned int 	m_time;			// Pakcet is valid when current time is small than m_time;
+	double 		m_xLabel;
+	double 		m_yLabel;
 	/* data */
 };
 class 	WarningsPacket : public HdPacket
@@ -143,6 +145,8 @@ public:
 	unsigned int GetTime();
 	unsigned int GetPacketId();
 	unsigned int GetRb();
+	double 		GetXLabel();
+	double 		GetYLabel();
 private:
 	WarningsInfo 	m_warningsInfo;
 };

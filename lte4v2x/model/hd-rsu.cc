@@ -120,7 +120,8 @@ void	HdRsu::AssignRbs()		// Round Robin
 	std::vector<AccessInfo>::iterator 	it_a;
 	for(unsigned int i=0;i<m_zoneId.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
 	{
-		m_usedRb[i] = (m_zoneId[i]%3)*16;
+		unsigned int m = m_zoneId[i] % 3;
+		m_usedRb.push_back(m*16);
 	}
 	for(unsigned int i=0;i<m_accessLog.size();i++)
 	{

@@ -23,7 +23,7 @@ void 	HdRsuScenario::Start()
 {
 	ParseParFile();		// Get HdRsuInfo
 	ParseTraceFile();	//	Get HdVehicleInfo
-	Init();				// Init HdRsu and HdVehicle
+	Init();				// Init HdRsu and HdVehicle, schedule the start func of HdRsus and HdVehicles
 }
 
 
@@ -160,6 +160,7 @@ void	HdRsuScenario::Init()
 			}
 		}
 		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo);
+		rsu->Update();		// Start a HdRsu
 		std::vector<Ptr<HdVehicle> > v;
 		m_hdVehRsu.insert(std::make_pair<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >(rsu, v));
 	}
@@ -186,6 +187,7 @@ void	HdRsuScenario::Init()
 
 		Ptr<HdVehicle> veh  = Create<HdVehicle>(rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, 
 												m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility);
+		veh->Update();			// Start a HdVehicle
 		std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 		for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();it++)
 		{
