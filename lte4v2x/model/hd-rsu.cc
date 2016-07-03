@@ -5,8 +5,9 @@
 
 namespace ns3{ 
 
-HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo)
+HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, Ptr<HdRsuScenario> hdSce)
 :m_status(true),
+m_hdSce(hdSce),
 m_usedRb(0),
 m_assignRb(),
 m_assignRelayNode(),
@@ -38,7 +39,7 @@ void 	HdRsu::Update()
 	Simulator::Schedule(Seconds(0.001),&HdRsu::Update, this);
 }
 
-void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> msg)
+void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> &msg)
 {
 	switch(msg->GetPacketType())
 	{
@@ -201,7 +202,7 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 	}
 }
 
-void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE,
+void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE
 {
 
 }

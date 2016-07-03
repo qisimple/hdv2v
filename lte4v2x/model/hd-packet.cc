@@ -216,6 +216,10 @@ unsigned int 	WarningsPacket::GetPacketId()
 {
 	return m_warningsInfo.m_packetId;
 }
+unsigned int 	WarningsPacket::GetVehicleId()
+{
+	return m_warningsInfo.m_vehicleId;
+}
 unsigned int 	WarningsPacket::GetRb()
 {
 	return m_warningsInfo.m_rb;
@@ -229,9 +233,12 @@ double 		WarningsPacket::GetYLabel()
 	return m_warningsInfo.m_yLabel;
 }
 
-RelayPacket::RelayPacket(const std::vector<WarningsInfo> &relay)
+RelayPacket::RelayPacket(const std::vector<WarningsInfo> &relay, unsigned int relayNodeId, double xLabel, double yLabel)
 {
 	m_relay = relay;
+	m_relayNodeId = relayNodeId;
+	m_xLabel = xLabel;
+	m_yLabel = yLabel;
 	this->SetPacketType(RELAY_PACKET);
 }
 RelayPacket::~RelayPacket(){}
@@ -252,6 +259,17 @@ bool 	RelayPacket::GetExist(unsigned int vehicleId, unsigned int packetId)
 	}
 	return res;
 }
-
+unsigned int 	RelayPacket::GetRelayNodeId()
+{
+	return m_relayNodeId;
+}
+double 		RelayPacket::GetXLabel()
+{
+	return m_xLabel;
+}
+double 		RelayPacket::GetYLabel()
+{
+	return m_yLabel;
+}
 
 }//namespace ns3

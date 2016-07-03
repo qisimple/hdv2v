@@ -10,17 +10,22 @@
 
 namespace ns3 {
 
+class HdRsuScenario;
+
 class HdVehicle : public SimpleRefCount<HdVehicle>
 {
+	friend class HdRsuScenario;
 public:
 	HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
-		double xLabel, double yLabel, double velocity,double sendProbility);
+		double xLabel, double yLabel, double velocity,double sendProbility, Ptr<HdRsuScenario> hdSce);
 	~HdVehicle();
 	void 	Update();
-	void 	ReceiveHdPacket(Ptr<HdPacket> msg);
+	void 	ReceiveHdPacket(Ptr<HdPacket> &msg);
 	void 	SendAccessPacket();
 	void 	SendWarningsPacket();
 	void 	SendRelayPacket();
+	unsigned int GetVehicleId();
+	bool 	IfSurround(double x,double y);
 private:
 	void 	UpdateLog();
 	void 	StateConvert(bool &relay);
@@ -41,6 +46,8 @@ private:
 	int 	m_totalReceivePacketNum;	// Num of received different packet
 	unsigned int 	m_nextPacketId;		// Starting from 0
 	unsigned int 	m_totalDelay;	// No larger than validTime
+	Ptr<HdRsuScenario> 	m_hdSce;		// The Ptr of the scenario manager
+
 	std::map<unsigned int, unsigned int> 	m_packetSentLog;	// PacketId is key, remaining time is value,it is used to log those sented but not relayed packets; it is supposed to fail if remaining time is larger than valid time
 	std::vector<unsigned int> 	m_accessLog;	// Access procedure takes two time slots, so it only shows the current rbs it get 
 	std::vector<Ptr<WarningsPacket> > 	m_packetNotSentLog;	// Not access yet,value is the ptr of this packet

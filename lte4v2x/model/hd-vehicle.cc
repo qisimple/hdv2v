@@ -8,7 +8,7 @@
 namespace ns3{
 
 HdVehicle::HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
-		double xLabel, double yLabel, double velocity,double sendProbility)
+		double xLabel, double yLabel, double velocity,double sendProbility, Ptr<HdRsuScenario> hdSce)
 :m_relayNode(false),
 m_relaying(false),
 m_totalPacketNum(0),
@@ -17,6 +17,7 @@ m_failPacketNum(0),
 m_totalReceivePacketNum(0),
 m_nextPacketId(0),
 m_totalDelay(0),
+m_hdSce(hdSce),
 m_packetSentLog(),
 m_accessLog(),
 m_packetNotSentLog(),
@@ -83,7 +84,7 @@ void 	HdVehicle::Update()
 	Simulator::Schedule(Seconds(0.001), &HdVehicle::Update, this);
 }
 
-void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> msg)
+void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> &msg)
 {
 	switch (msg->GetPacketType())
 	{
@@ -173,6 +174,23 @@ void	HdVehicle::SendRelayPacket()
 		Send(m_packetRelayLog[i]);
 	}
 	m_packetRelayLog.clear();
+}
+
+unsigned int HdVehicle::GetVehicleId()
+{
+	return m_vehicleId;
+}
+
+bool 	HdVehicle::IfSurround(double x, double y)		// Assume AR is 200m
+{
+	bool res = false;
+	x = x - m_xLabel;
+	y = y - m_yLabel;
+	if(x*x + y*y <= 40000)
+	{
+		res = true;
+	}
+	return	res;
 }
 
 void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_packetRelayLog, remaining valid time minus 1

@@ -8,6 +8,8 @@
 #include <string>
 #include <iostream>
 
+#define BROADCAST 0x0fffffff;
+
 namespace ns3 {
 
 enum HdPacketType
@@ -144,6 +146,7 @@ public:
 	void	SetRb(unsigned int rb);
 	unsigned int GetTime();
 	unsigned int GetPacketId();
+	unsigned int GetVehicleId();
 	unsigned int GetRb();
 	double 		GetXLabel();
 	double 		GetYLabel();
@@ -153,13 +156,18 @@ private:
 class 	RelayPacket : public HdPacket
 {
 public:
-	RelayPacket(const std::vector<WarningsInfo> &relay);
+	RelayPacket(const std::vector<WarningsInfo> &relay, unsigned int relayNodeId, double xLabel, double yLabel);
 	virtual 	~RelayPacket();
 	std::vector<WarningsInfo> GetRelay();
 	bool 	GetExist(unsigned int vehicleId, unsigned int packetId);
+	unsigned int GetRelayNodeId();
+	double 		GetXLabel();
+	double 		GetYLabel();
 private:
 	std::vector<WarningsInfo>	m_relay;
-	// m_relayNodeId;		// Id of relay node
+	unsigned int m_relayNodeId;		// Id of relay node
+	double m_xLabel;
+	double m_yLabel;
 };
 
 struct HdRsuInfo: public SimpleRefCount<HdRsuInfo>

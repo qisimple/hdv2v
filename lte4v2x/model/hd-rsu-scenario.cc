@@ -199,4 +199,99 @@ void	HdRsuScenario::Init()
 	}
 }
 
+void HdRsuScenario::DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest)
+{
+	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> >::iterator it;
+	bool res = false;
+	switch (msg->GetPacketType())
+	{
+		case ACCESS_PACKET:		// From vehicle to rsu
+		{
+			for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
+			{
+				for(unsigned int i=0;i<(it->second).size();i++)
+				{
+					if((it->second)[i]->GetVehicleId() == src)
+					{
+						res = true;
+						break;
+					}
+				}
+				if(res)
+				{
+					it->first->ReceiveHdPacket(msg);
+					break;
+				}
+			}
+			break;
+		}
+		case CONTROL_PACKET:	// From rsu to vehicle,, there are security problems here, i just leave it here, don't care....
+		{
+			for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
+			{
+				if(it->first->GetRsuId() == src)		// 
+				{
+					assert(dest == BROADCAST);
+					for(unsigned int i=0;i<(it->second).size();i++)
+					{
+						(it->second)[i]->ReceiveHdPacket(msg);
+					}
+				}
+				else
+				{
+					// Not a valid Rsuid
+					assert(0);
+				}
+			}
+			break;
+		}
+		case WARNINGS_PACKET:		// From vehicle to surrounded vehicles which are within its AR(awareness range)
+		{
+			Ptr<WarningsPacket>	war = DynamicCast<WarningsPacket>(msg);
+			double x = war->GetXLabel();
+			double y = war->GetYLabel();
+			unsigned int vehId = war->GetVehicleId();
+			for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
+			{
+				for(unsigned int i=0;i<(it->second).size();i++)
+				{
+					if((it->second)[i]->IfSurround(x, y))
+					{
+						if((it->second)[i]->GetVehicleId()!=vehId)
+						{
+							(it->second)[i]->ReceiveHdPacket(msg);
+						}
+					}
+				}
+			}
+			break;
+		}
+		case RELAY_PACKET:		// From transfer vehicle to surrounded vehicles which are within its AR(awareness range)
+		{
+			Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
+			double x = relay->GetXLabel();
+			double y = relay->GetYLabel();
+			unsigned int vehId = war->GetVehicleId();
+			for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
+			{
+				for(unsigned int i=0;i<(it->second).size();i++)
+				{
+					if((it->second)[i]->IfSurround(x, y))
+					{
+						if((it->second)[i]->GetVehicleId()!=vehId)
+						{
+							(it->second)[i]->ReceiveHdPacket(msg);
+						}
+					}
+				}
+			}
+			break;
+		}
+		default:
+		{
+			std::cout<<"Error Packet type!"<<std::endl;
+		}
+	}
+}
+
 }//namespace ns3
