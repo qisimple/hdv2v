@@ -14,7 +14,7 @@
 
 namespace ns3 {
 
-class HdRsuScenario : public SimpleRefCount<HdRsuScenario>
+class HdRsuScenario:public SimpleRefCount<HdRsuScenario>
 {
 public:
 	HdRsuScenario(const std::string &traceFile, const std::string &parFile);
@@ -25,10 +25,10 @@ private:
 	void 	ParseTraceFile();	// Deal with m_vehicles
 	void 	ParseParFile();		// Deal with m_rsus, m_validTime, m_sendProbility
 	void 	Init();				// Init HdRsu and HdVehicle
-	void 	DoSend(Ptr<HdPacket> msg, unsigned int src, unsigned int dest);		// Decide which object to receive according to packet type and src and dest
+	void 	DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest);		// Decide which object to receive according to packet type and src and dest
 	std::string 	m_traceFile;		//  Sumo trace file
 	std::string 	m_parFile;		// Configure file
-	double 	m_validTime;
+	unsigned int 	m_validTime;
 	double 	m_sendProbility;		// We get this from configure file
 
 	std::vector<Ptr<HdVehicleInfo> > 	m_vehicleInfo;

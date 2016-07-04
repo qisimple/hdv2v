@@ -10,14 +10,12 @@
 
 namespace ns3 {
 
-class HdRsuScenario;
+class 	HdRsuScenario;
 
-class HdVehicle : public SimpleRefCount<HdVehicle>
+class HdVehicle:public SimpleRefCount<HdVehicle>
 {
-	friend class HdRsuScenario;
 public:
-	HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
-		double xLabel, double yLabel, double velocity,double sendProbility, Ptr<HdRsuScenario> hdSce);
+	HdVehicle(HdVehicleParameter &par, HdRsuScenario *hdSce);
 	~HdVehicle();
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> &msg);

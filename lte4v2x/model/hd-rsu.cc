@@ -1,11 +1,12 @@
 #include "hd-rsu.h"
+#include "hd-rsu-scenario.h"
 #include <cassert>
 #include <utility>
 #include "ns3/simulation-singleton.h"
 
 namespace ns3{ 
 
-HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, Ptr<HdRsuScenario> hdSce)
+HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, HdRsuScenario *hdSce)
 :m_status(true),
 m_hdSce(hdSce),
 m_usedRb(0),

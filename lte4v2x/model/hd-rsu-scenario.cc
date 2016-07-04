@@ -2,6 +2,7 @@
 #include <sstream>
 #include <fstream>
 #include <utility>
+#include <cassert>
 
 namespace ns3{
 
@@ -159,7 +160,7 @@ void	HdRsuScenario::Init()
 				vehInfo.push_back(m_vehicleInfo[k]);
 			}
 		}
-		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo);
+		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo, this);
 		rsu->Update();		// Start a HdRsu
 		std::vector<Ptr<HdVehicle> > v;
 		m_hdVehRsu.insert(std::make_pair<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >(rsu, v));
@@ -167,7 +168,7 @@ void	HdRsuScenario::Init()
 
 	for(unsigned int i=0;i<m_vehicleInfo.size();i++)	// Init HdVehicle
 	{
-		rsuId = 10000;			// Suppose rsuId is less than 10000;
+		rsuId = 10000;			// Suppose rsuId is less than 10000; usigned int type
 		if(m_vehicleInfo[i]->xLabel<800)
 		{
 			rsuId = 0;
@@ -184,9 +185,8 @@ void	HdRsuScenario::Init()
 		{
 			// Beyond 
 		}
-
-		Ptr<HdVehicle> veh  = Create<HdVehicle>(rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, 
-												m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility);
+		HdVehicleParameter par = {rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility};
+		Ptr<HdVehicle> veh = Create<HdVehicle>(par, this);
 		veh->Update();			// Start a HdVehicle
 		std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 		for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();it++)
@@ -201,7 +201,7 @@ void	HdRsuScenario::Init()
 
 void HdRsuScenario::DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest)
 {
-	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> >::iterator it;
+	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 	bool res = false;
 	switch (msg->GetPacketType())
 	{
@@ -271,7 +271,7 @@ void HdRsuScenario::DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int de
 			Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
 			double x = relay->GetXLabel();
 			double y = relay->GetYLabel();
-			unsigned int vehId = war->GetVehicleId();
+			unsigned int vehId = relay->GetRelayNodeId();
 			for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
 			{
 				for(unsigned int i=0;i<(it->second).size();i++)

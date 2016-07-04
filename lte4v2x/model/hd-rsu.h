@@ -11,13 +11,12 @@
 
 namespace ns3 {
 
-class HdRsuScenario;
+class 	HdRsuScenario;
 
-class HdRsu : public SimpleRefCount<HdRsu>
+class HdRsu:public SimpleRefCount<HdRsu>
 {
-	friend 	class 	HdRsuScenario;
 public:
-	HdRsu( unsigned int rsuId, double xLabel, double yLabel, std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, Ptr<HdRsuScenario> hdSce);
+	HdRsu( unsigned int rsuId, double xLabel, double yLabel, std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, HdRsuScenario *hdSce);
 	~HdRsu();
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> &msg);

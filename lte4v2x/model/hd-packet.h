@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-#define BROADCAST 0x0fffffff;
+#define BROADCAST 0x0fffffff
 
 namespace ns3 {
 
@@ -184,6 +184,18 @@ struct HdVehicleInfo: public SimpleRefCount<HdVehicleInfo>
 	double 	xLabel;
 	double yLabel;
 	double velocity;
+	/* data */
+};
+
+struct HdVehicleParameter
+{
+	unsigned int rsuId;
+	unsigned int vehicleId;
+	unsigned int validTime;
+	double xLabel;
+	double yLabel;
+	double velocity;
+	double sendProbility;
 	/* data */
 };
 

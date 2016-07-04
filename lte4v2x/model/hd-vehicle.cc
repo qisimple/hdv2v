@@ -1,4 +1,5 @@
 #include "hd-vehicle.h"
+#include "hd-rsu-scenario.h"
 #include <cstdio>
 #include <cstring>
 #include <utility>
@@ -7,8 +8,7 @@
 
 namespace ns3{
 
-HdVehicle::HdVehicle(unsigned int rsuId, unsigned int vehicleId, unsigned int validTime, 
-		double xLabel, double yLabel, double velocity,double sendProbility, Ptr<HdRsuScenario> hdSce)
+HdVehicle::HdVehicle(HdVehicleParameter &par, HdRsuScenario *hdSce)
 :m_relayNode(false),
 m_relaying(false),
 m_totalPacketNum(0),
@@ -24,13 +24,13 @@ m_packetNotSentLog(),
 m_packetRelayLog()
 {
 	m_ptrRandom = CreateObject<UniformRandomVariable>();
-	m_rsuId = rsuId;
-	m_vehicleId = vehicleId;
-	m_validTime = validTime;
-	m_xLabel = xLabel;
-	m_yLabel = yLabel;
-	m_velocity = velocity;
-	m_sendProbility = sendProbility;
+	m_rsuId = par.rsuId;
+	m_vehicleId = par.vehicleId;
+	m_validTime = par.validTime;
+	m_xLabel = par.xLabel;
+	m_yLabel = par.yLabel;
+	m_velocity = par.velocity;
+	m_sendProbility = par.sendProbility;
 }
 HdVehicle::~HdVehicle(){}
 
