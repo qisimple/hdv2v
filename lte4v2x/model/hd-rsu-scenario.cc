@@ -25,6 +25,7 @@ void 	HdRsuScenario::Start()
 	ParseParFile();		// Get HdRsuInfo
 	ParseTraceFile();	//	Get HdVehicleInfo
 	Init();				// Init HdRsu and HdVehicle, schedule the start func of HdRsus and HdVehicles
+	// Simulator::Schedule(Seconds(1.0), &HdRsuScenario::CalculateResult, this);
 }
 
 
@@ -35,11 +36,25 @@ TO Be Finished
 */
 void 	HdRsuScenario::CalculateResult()
 {
-
+	std::cout<<"get into HdRsuScenario::CalculateResult()"<<std::endl;
+	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
+	for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
+	{
+		for(unsigned int i=0;i<(it->second).size();i++)
+		{
+			std::cout << "vehicleId:"<<(it->second)[i]->GetVehicleId()<<" "
+				<<"GetTotalPacketNum:"<<(it->second)[i]->GetTotalPacketNum()<<" "
+				<<"GetEfficientPacketNum:"<<(it->second)[i]->GetEfficientPacketNum()<<" "
+				<<"GetFailPacketNum:"<<(it->second)[i]->GetFailPacketNum()<<" "
+				<<"GetTotalReceivePacketNum:"<<(it->second)[i]->GetTotalReceivePacketNum()<<" "
+				<<std::endl;
+		}
+	}
 }
 
 void 	HdRsuScenario::ParseTraceFile()
 {
+	// std::cout<<"get into HdRsuScenario::ParseTraceFile()"<<std::endl;
 	std::ifstream file(m_traceFile.c_str (), std::ios::in);
  	if (file.is_open ())
 	{
@@ -85,11 +100,17 @@ void 	HdRsuScenario::ParseTraceFile()
 			}
 		}
 	}
+	else
+	{
+		assert(file.is_open ());
+	}
 	file.close ();
+	std::cout<<"size:"<<m_vehicleInfo.size()<<std::endl;
 }
 
 void 	HdRsuScenario::ParseParFile()
 {
+	// std::cout<<"get into HdRsuScenario::ParseParFile()"<<std::endl;
 	m_validTime = 10;
 	m_sendProbility = 0.1;
 	double xLabel = 500;
@@ -110,6 +131,7 @@ void 	HdRsuScenario::ParseParFile()
 
 void	HdRsuScenario::Init()
 {
+	// std::cout<<"get into HdRsuScenario::Init()"<<std::endl;
 	std::vector<unsigned int> 	zoneId;
 	unsigned int rsuId;
 	std::vector<Ptr<HdVehicleInfo> > vehInfo;
@@ -161,7 +183,6 @@ void	HdRsuScenario::Init()
 			}
 		}
 		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo, this);
-		rsu->Update();		// Start a HdRsu
 		std::vector<Ptr<HdVehicle> > v;
 		m_hdVehRsu.insert(std::make_pair<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >(rsu, v));
 	}
@@ -187,13 +208,13 @@ void	HdRsuScenario::Init()
 		}
 		HdVehicleParameter par = {rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility};
 		Ptr<HdVehicle> veh = Create<HdVehicle>(par, this);
-		veh->Update();			// Start a HdVehicle
 		std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 		for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();it++)
 		{
 			if(it->first->GetRsuId() == rsuId)
 			{
 				(it->second).push_back(veh);
+				break;
 			}
 		}
 	}
@@ -201,6 +222,7 @@ void	HdRsuScenario::Init()
 
 void HdRsuScenario::DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest)
 {
+	// std::cout<<"get into HdRsuScenario::DoSend()"<<std::endl;
 	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 	bool res = false;
 	switch (msg->GetPacketType())
@@ -232,16 +254,17 @@ void HdRsuScenario::DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int de
 				if(it->first->GetRsuId() == src)		// 
 				{
 					assert(dest == BROADCAST);
+					res = true;
 					for(unsigned int i=0;i<(it->second).size();i++)
 					{
 						(it->second)[i]->ReceiveHdPacket(msg);
 					}
+					break;
 				}
-				else
-				{
-					// Not a valid Rsuid
-					assert(0);
-				}
+			}
+			if(!res)
+			{
+				assert(0);		// No this rsuId
 			}
 			break;
 		}

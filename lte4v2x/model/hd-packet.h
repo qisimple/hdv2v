@@ -38,7 +38,7 @@ public:
 	* \brief Set the type of the packet
 	* \param type the type of the packet
 	*/
-	void SetPacketType (const HdPacketType &type);
+	void SetPacketType (HdPacketType type);
 	/**
 	* \brief Get the type of the packet
 	* \return the type of the packet

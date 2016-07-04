@@ -6,7 +6,7 @@ namespace ns3{
 
 HdPacket::HdPacket(){}
 HdPacket::~HdPacket(){}
-void 	HdPacket::SetPacketType(const HdPacketType &type)
+void 	HdPacket::SetPacketType(HdPacketType type)
 {
 	m_type = type;
 }

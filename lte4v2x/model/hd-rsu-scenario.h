@@ -3,6 +3,8 @@
 
 #include <ns3/ptr.h>
 #include <ns3/simple-ref-count.h>
+#include "ns3/simulator.h"
+#include "ns3/nstime.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -21,11 +23,11 @@ public:
 	~HdRsuScenario();
 	void 	Start();
 	void 	CalculateResult();
+	void 	DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest);		// Decide which object to receive according to packet type and src and dest
 private:
 	void 	ParseTraceFile();	// Deal with m_vehicles
 	void 	ParseParFile();		// Deal with m_rsus, m_validTime, m_sendProbility
 	void 	Init();				// Init HdRsu and HdVehicle
-	void 	DoSend(Ptr<HdPacket> &msg, unsigned int src, unsigned int dest);		// Decide which object to receive according to packet type and src and dest
 	std::string 	m_traceFile;		//  Sumo trace file
 	std::string 	m_parFile;		// Configure file
 	unsigned int 	m_validTime;

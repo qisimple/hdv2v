@@ -7,11 +7,12 @@
 namespace ns3{ 
 
 HdRsu::HdRsu(unsigned int rsuId, double xLabel, double yLabel,std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, HdRsuScenario *hdSce)
-:m_status(true),
+:m_status(false),
 m_hdSce(hdSce),
 m_usedRb(0),
 m_assignRb(),
 m_assignRelayNode(),
+m_lastRelayNode(),
 m_accessLog(),
 m_vehicle()
 {
@@ -22,26 +23,29 @@ m_vehicle()
 	m_yLabel = yLabel;
 	m_zoneId = zoneId;
 	m_vehicle = vehInfo;
+	Update();
 }
 HdRsu::~HdRsu(){}
 
 void 	HdRsu::Update()
 {
+	// std::cout<<"get into HdRsu::Update"<<std::endl;
+	StateConvert(m_status);
 	if(m_status == false)	// Send ControlPacket
 	{
-		Simulator::Schedule(Seconds(0.001),&HdRsu::StateConvert, this ,m_status);
-		SendControlPacket();
+		UpdateLog();
+		Simulator::Schedule(Seconds(0.0001), &HdRsu::SendControlPacket, this);
 	}
 	else
 	{
-		Simulator::Schedule(Seconds(0.001),&HdRsu::StateConvert, this, m_status);
-		Simulator::Schedule(Seconds(0.001),&HdRsu::UpdateLog, this);	
+		InitLog();
 	}
 	Simulator::Schedule(Seconds(0.001),&HdRsu::Update, this);
 }
 
 void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> &msg)
 {
+	// std::cout<<"get into HdRsu::ReceiveHdPacket"<<std::endl;
 	switch(msg->GetPacketType())
 	{
 		case ACCESS_PACKET:
@@ -61,19 +65,24 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> &msg)
 			}
 			else
 			{
-				// Wrong time slot;
+				// Wrong time slot; rsu can only send control packet now
 			}
+			break;
 		}
 		default:
-		{}
+		{
+			std::cout<<"HdRsu:Error!Wrong Type!"<<msg->GetPacketType()<<std::endl;
+		}
 	}
 }
 
 void 	HdRsu::SendControlPacket()
 {
+	unsigned int t = Simulator::Now().GetMilliSeconds();
+	std::cout<<t<<"  "<<"get into HdRsu::SendControlPacket"<<std::endl;
 	Ptr<ControlPacket> con = Create<ControlPacket>();
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it_rb;	
-	for(it_rb=m_assignRb.begin();it_rb!=m_assignRb.end();)
+	for(it_rb=m_assignRb.begin();it_rb!=m_assignRb.end();++it_rb)
 	{
 		ControlInfo info;
 		info.m_vehicleId = it_rb->first;
@@ -85,6 +94,8 @@ void 	HdRsu::SendControlPacket()
 	Send(hd);
 	m_assignRb.clear();
 	m_assignRelayNode.clear();
+	m_usedRb.clear();
+	m_accessLog.clear();
 }
 
 // void 	HdRsu::SendNotifyBroadcastVehiclesPacket()
@@ -100,8 +111,23 @@ unsigned int 	HdRsu::GetRsuId()
 
 void 	HdRsu::UpdateLog()	// Assign at the end of access slot
 {
+	// std::cout<<"get into HdRsu::UpdateLog"<<std::endl;
 	AssignRbs();
 	AssignRelayNodes();
+}
+
+void 	HdRsu::InitLog()
+{
+	for(unsigned int i=0;i<m_zoneId.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
+	{
+		unsigned int m = m_zoneId[i] % 3;
+		m_usedRb.push_back(m*16);
+	}
+	for(unsigned int i=0;i<m_zoneId.size();i++)		// Init m_accessLog
+	{
+		std::vector<AccessInfo> v;
+		m_accessLog.push_back(v);
+	}
 }
 
 void 	HdRsu::StateConvert(bool &relay)
@@ -120,11 +146,7 @@ void	HdRsu::AssignRbs()		// Round Robin
 {
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it;
 	std::vector<AccessInfo>::iterator 	it_a;
-	for(unsigned int i=0;i<m_zoneId.size();i++)		// Init m_usedRb, the value of Rb is from 0 to 47, with each zone 16 rbs
-	{
-		unsigned int m = m_zoneId[i] % 3;
-		m_usedRb.push_back(m*16);
-	}
+
 	for(unsigned int i=0;i<m_accessLog.size();i++)
 	{
 		bool res = true;
@@ -180,7 +202,7 @@ void	HdRsu::AssignRbs()		// Round Robin
 	m_accessLog.clear();
 }
 
-void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in accessLog)
+void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in m_assignRb)
 {
 	std::vector<double>	dis;
 	for(unsigned int i=0;i<m_zoneId.size();i++)
@@ -192,24 +214,53 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 	}
 	for(unsigned int i=0;i<m_vehicle.size();i++)
 	{
-		for(unsigned int j=0;j<m_zoneId.size();j++)
+		std::map<unsigned int, std::vector<unsigned int> >::iterator it;
+		bool 	res = false;
+		for(it=m_assignRb.begin();it!=m_assignRb.end();++it)
 		{
-			if(m_vehicle[i]->xLabel - m_zoneId[j]*200 < dis[j])
+			if(m_vehicle[i]->vehicleId == it->first)
 			{
-				dis[j] = m_vehicle[i]->xLabel - m_zoneId[j]*200;
-				m_assignRelayNode[j] = m_vehicle[i]->vehicleId;
+				res = true;
+				break;
+			}
+		}
+		for(unsigned int k=0;k<m_lastRelayNode.size();k++)
+		{
+			if(m_vehicle[i]->vehicleId == m_lastRelayNode[k])
+			{
+				res = true;
+				break;
+			}
+		}
+		if(!res)
+		{
+			for(unsigned int j=0;j<m_zoneId.size();j++)
+			{
+				if(m_vehicle[i]->xLabel - m_zoneId[j]*200 < dis[j])
+				{
+					dis[j] = m_vehicle[i]->xLabel - m_zoneId[j]*200;
+					m_assignRelayNode[j] = m_vehicle[i]->vehicleId;
+				}
 			}
 		}
 	}
+	m_lastRelayNode.clear();
+	m_lastRelayNode = m_assignRelayNode;
+	unsigned int t = Simulator::Now().GetMilliSeconds();
+	std::cout<<t<<"  "<<"get into HdRsu::AssignRelayNodes"
+		<<"size:"<<m_assignRelayNode.size()
+		<<std::endl;
 }
 
 void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE
 {
-
+	// std::cout<<"get into HdRsu::Send"<<std::endl;
+	m_hdSce->DoSend(con, m_rsuId, BROADCAST);
 }
 
 bool	HdRsu::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
 {
+	// std::cout<<"get into HdRsu::InAccess"<<std::endl;
 	bool 	res = false;
 	double 	x = vehicleInfo->xLabel;
 	unsigned int i;
