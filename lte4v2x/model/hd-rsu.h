@@ -31,7 +31,7 @@ private:
 	void 	AssignRbs();
 	void 	AssignRelayNodes();
 	void 	Send(Ptr<HdPacket> &con);
-	bool 	InAccess(const Ptr<HdVehicleInfo> vehicleInfo);
+	// bool 	InAccess(const Ptr<HdVehicleInfo> vehicleInfo);		// If a vehicle in the m_accessLog
 	unsigned int 	m_rsuId;
 	double		m_xLabel;
 	double 		m_yLabel;

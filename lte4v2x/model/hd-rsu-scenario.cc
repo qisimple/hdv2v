@@ -47,6 +47,7 @@ void 	HdRsuScenario::CalculateResult()
 				<<"GetEfficientPacketNum:"<<(it->second)[i]->GetEfficientPacketNum()<<" "
 				<<"GetFailPacketNum:"<<(it->second)[i]->GetFailPacketNum()<<" "
 				<<"GetTotalReceivePacketNum:"<<(it->second)[i]->GetTotalReceivePacketNum()<<" "
+				<<"m_xLabel:"<<(it->second)[i]->GetXLabel()<<" "
 				<<std::endl;
 		}
 	}

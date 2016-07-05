@@ -27,13 +27,13 @@ public:
 	int 	GetEfficientPacketNum();
 	int 	GetFailPacketNum();
 	int 	GetTotalReceivePacketNum();
+	double GetXLabel();
 	bool 	IfSurround(double x,double y);
 private:
 	void 	UpdateLog();
 	void 	Send(Ptr<HdPacket> &hd);
 	// std::string 	m_zoneId;
 	bool 	m_relayNode;		// If it is assigned as relayNode, first bit;	00 -> access; 10 -> control; 11 -> listen; 01 -> relay;
-	unsigned int  	m_count;			// If it is in relay procedure, second bit;
 	unsigned int 	m_rsuId;		// the rsu it belongs to
 	unsigned int	m_vehicleId;
 	unsigned int	m_validTime;		// Unit is ms

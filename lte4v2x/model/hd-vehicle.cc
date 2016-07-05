@@ -10,7 +10,6 @@ namespace ns3{
 
 HdVehicle::HdVehicle(HdVehicleParameter &par, HdRsuScenario *hdSce)
 :m_relayNode(false),
-m_count(0),
 m_totalPacketNum(0),
 m_efficientPacketNum(0),
 m_failPacketNum(0),
@@ -40,6 +39,7 @@ void 	HdVehicle::Update()
 	// std::cout<<"get into HdVehicle::Update"<<std::endl;
 	UpdateLog();		// delete the validTime=0 items
 	double random_value = m_ptrRandom->GetValue(double(0.0), double(1.0));
+	unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
 	if(random_value < m_sendProbility)	// If true, we get a new packet, inset it to m_packetNotSentLog
 	{
 		WarningsInfo 	war;
@@ -47,7 +47,6 @@ void 	HdVehicle::Update()
 		war.m_packetId = m_nextPacketId++;
 		// m_rb will be allocated when this packet is sended
 		war.m_priorityType = HIGH;
-		unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
 		war.m_time = t + m_validTime;
 		war.m_xLabel = m_xLabel;
 		war.m_yLabel = m_yLabel;
@@ -61,30 +60,37 @@ void 	HdVehicle::Update()
 
 	if(m_relayNode)
 	{
-		if(m_count == 0)
+		if( t%2 == 0)
 		{
-			m_count++;
+			// 	Wait to receive warnings
 		}
 		else
 		{
-			m_count++;
 			Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendRelayPacket, this);
 		}
 	}
 	else
 	{
-		if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()>0))			// Necessary to access the channel;
+		if(t%2 == 0)
 		{
-			Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendWarningsPacket, this);
-		}
-		else if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()==0))
-		{
-			Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendAccessPacket, this);		// Send at the begining of time slot, and Rsu suppose to receive at the end of the same time slot
+			if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()>0))			// Necessary to access the channel;
+			{
+				Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendWarningsPacket, this);
+			}
+			else if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()==0))
+			{
+				Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendAccessPacket, this);		// Send at the begining of time slot, and Rsu suppose to receive at the end of the same time slot
+			}
+			else
+			{
+				// Do nothing
+			}			
 		}
 		else
 		{
-			// Do nothing
+			// Wait to receive control messages
 		}
+
 	}
 	Simulator::Schedule(Seconds(0.001), &HdVehicle::Update, this);
 }
@@ -92,27 +98,28 @@ void 	HdVehicle::Update()
 void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> &msg)
 {
 	// std::cout<<"get into HdVehicle::ReceiveHdPacket"<<std::endl;
+	unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
 	switch (msg->GetPacketType())
 	{
 		case CONTROL_PACKET:
 		{
-			if(m_relayNode == true)
-			{
-				// Abundon the packets;
-			}
-			else
+			if(m_relayNode == false && t%2 == 1)
 			{
 				Ptr<ControlPacket>	con = DynamicCast<ControlPacket>(msg);
 				m_accessLog.clear();
 				m_accessLog = con->GetRb(m_vehicleId);
 				m_relayNode = con->GetRelayNode(m_vehicleId);
 			}
+			else
+			{
+				// Abundon the packets;
+			}
 			break;
 		}
 		case WARNINGS_PACKET:
 		{
 			Ptr<WarningsPacket>	war = DynamicCast<WarningsPacket>(msg);
-			if(m_relayNode == true && m_count == 1)
+			if(m_relayNode == true && t%2 == 0)
 			{
 				m_packetRelayLog.push_back(msg);
 			}
@@ -120,16 +127,12 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> &msg)
 			{
 				// Abundon the packets;
 			}
-			m_totalReceivePacketNum++;
+			m_totalReceivePacketNum++;	// A vehicle send access while others are broadcasting, it will miss the packet. But it will receive it from RelayPacket.
 			break;
 		}
 		case RELAY_PACKET:		// Check the m_packetSentLog, if m_packetSentLog in relayPacket,then take it as a success else take it as a failure;
 		{
-			if(m_relayNode == true && m_count == 2)
-			{
-				// Abundon the packets
-			}
-			else
+			if(m_relayNode == false && t%2 == 1)
 			{
 				Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
 				std::vector<Ptr<WarningsPacket> >::iterator it;
@@ -149,6 +152,10 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> &msg)
 						++it;
 					}
 				}
+			}
+			else
+			{
+				// Abundon the packets
 			}
 			break;
 		}
@@ -216,7 +223,6 @@ void	HdVehicle::SendRelayPacket()
 	Send(hd);
 	m_packetRelayLog.clear();
 	m_relayNode = false;
-	m_count = 0;
 }
 
 unsigned int HdVehicle::GetVehicleId()
@@ -238,6 +244,10 @@ int 	HdVehicle::GetFailPacketNum()
 int 	HdVehicle::GetTotalReceivePacketNum()
 {
 	return m_totalReceivePacketNum;
+}
+double HdVehicle::GetXLabel()
+{
+	return 	m_xLabel;
 }
 
 bool 	HdVehicle::IfSurround(double x, double y)		// Assume AR is 200m

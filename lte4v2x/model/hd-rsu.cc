@@ -1,6 +1,7 @@
 #include "hd-rsu.h"
 #include "hd-rsu-scenario.h"
 #include <cassert>
+#include <cstdlib>
 #include <utility>
 #include "ns3/simulation-singleton.h"
 
@@ -146,7 +147,10 @@ void	HdRsu::AssignRbs()		// Round Robin
 {
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it;
 	std::vector<AccessInfo>::iterator 	it_a;
-
+	std::cout<<"m_accessLog[0].size"<<m_accessLog[0].size()
+		<<"m_accessLog[1].size"<<m_accessLog[1].size()
+		<<"rsuId:"<<m_rsuId
+		<<std::endl;
 	for(unsigned int i=0;i<m_accessLog.size();i++)
 	{
 		bool res = true;
@@ -199,7 +203,6 @@ void	HdRsu::AssignRbs()		// Round Robin
 			}
 		}
 	}
-	m_accessLog.clear();
 }
 
 void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in m_assignRb)
@@ -207,8 +210,16 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 	std::vector<double>	dis;
 	for(unsigned int i=0;i<m_zoneId.size();i++)
 	{
-		double x = 10000;			// Assume the length of scenario is less then 10000
-		unsigned int veh = 1000000;		// Assume the id of veh in scenario is less than 1000000
+		double x;
+		if(m_accessLog[i].size() == 0)
+		{
+			x = -1;				// Init, empty zone doesn't need any transfer nodes
+		}
+		else
+		{
+			x = 10000;			// Init, and assume the length of scenario is less then 10000
+		}
+		unsigned int veh = 1000000;		// Init, and assume the id of veh in scenario is less than 1000000
 		dis.push_back(x);
 		m_assignRelayNode.push_back(veh);
 	}
@@ -236,7 +247,7 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 		{
 			for(unsigned int j=0;j<m_zoneId.size();j++)
 			{
-				if(m_vehicle[i]->xLabel - m_zoneId[j]*200 < dis[j])
+				if(abs(m_vehicle[i]->xLabel - m_zoneId[j]*200) < dis[j])
 				{
 					dis[j] = m_vehicle[i]->xLabel - m_zoneId[j]*200;
 					m_assignRelayNode[j] = m_vehicle[i]->vehicleId;
@@ -246,6 +257,7 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 	}
 	m_lastRelayNode.clear();
 	m_lastRelayNode = m_assignRelayNode;
+	
 	unsigned int t = Simulator::Now().GetMilliSeconds();
 	std::cout<<t<<"  "<<"get into HdRsu::AssignRelayNodes"
 		<<"size:"<<m_assignRelayNode.size()
@@ -258,28 +270,28 @@ void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE
 	m_hdSce->DoSend(con, m_rsuId, BROADCAST);
 }
 
-bool	HdRsu::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
-{
-	// std::cout<<"get into HdRsu::InAccess"<<std::endl;
-	bool 	res = false;
-	double 	x = vehicleInfo->xLabel;
-	unsigned int i;
-	for(i=0;i<m_zoneId.size();i++)
-	{
-		if(x<(m_zoneId[i]+1)*200 && x>=m_zoneId[i]*200)
-		{
-			break;
-		}
-	}
-	for(unsigned int j=0;j<m_accessLog[i].size();j++)
-	{
-		if(vehicleInfo->vehicleId == m_accessLog[i][j].m_vehicleId)
-		{
-			res = true;
-			break;
-		}
-	}
-	return res;
-}
+// bool	HdRsu::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
+// {
+// 	// std::cout<<"get into HdRsu::InAccess"<<std::endl;
+// 	bool 	res = false;
+// 	double 	x = vehicleInfo->xLabel;
+// 	unsigned int i;
+// 	for(i=0;i<m_zoneId.size();i++)
+// 	{
+// 		if(x<(m_zoneId[i]+1)*200 && x>=m_zoneId[i]*200)
+// 		{
+// 			break;
+// 		}
+// 	}
+// 	for(unsigned int j=0;j<m_accessLog[i].size();j++)
+// 	{
+// 		if(vehicleInfo->vehicleId == m_accessLog[i][j].m_vehicleId)
+// 		{
+// 			res = true;
+// 			break;
+// 		}
+// 	}
+// 	return res;
+// }
 
 }//namespace ns3
