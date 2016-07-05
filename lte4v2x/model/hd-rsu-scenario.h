@@ -19,7 +19,7 @@ namespace ns3 {
 class HdRsuScenario:public SimpleRefCount<HdRsuScenario>
 {
 public:
-	HdRsuScenario(const std::string &traceFile, const std::string &parFile);
+	HdRsuScenario(const std::string &traceFile, const std::string &parFile, double sendProbility);
 	~HdRsuScenario();
 	void 	Start();
 	void 	CalculateResult();

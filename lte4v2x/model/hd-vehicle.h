@@ -22,12 +22,17 @@ public:
 	void 	SendAccessPacket();
 	void 	SendWarningsPacket();
 	void 	SendRelayPacket();
+
 	unsigned int GetVehicleId();
+	unsigned int GetTotalDelay();
 	int 	GetTotalPacketNum();
 	int 	GetEfficientPacketNum();
+	int 	GetActualSendPacketNum();
 	int 	GetFailPacketNum();
 	int 	GetTotalReceivePacketNum();
+	int 	GetNotSentPacketNum();
 	double GetXLabel();
+	double GetYLabel();
 	bool 	IfSurround(double x,double y);
 private:
 	void 	UpdateLog();
@@ -43,6 +48,7 @@ private:
 	double 	m_sendProbility;
 	int	m_totalPacketNum;	
 	int 	m_efficientPacketNum;		// If all vehicles in its AR correctly receive the packet, access packet is not involved
+	int 	m_actualSendPacketNum;
 	int 	m_failPacketNum;	// If it didn't get radio resource within certain time or not all vehicles in its AR correctly receive the packet
 	int 	m_totalReceivePacketNum;	// Num of received different packet
 	unsigned int 	m_nextPacketId;		// Starting from 0

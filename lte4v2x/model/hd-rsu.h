@@ -22,8 +22,6 @@ public:
 	void 	ReceiveHdPacket(Ptr<HdPacket> &msg);
 	void 	SendControlPacket();
 	unsigned int 	GetRsuId();
-	// void 	SendNotifyBroadcastVehiclesPacket();
-	// void 	SendRelayPacket();
 private:
 	void 	UpdateLog();
 	void 	InitLog();
@@ -31,7 +29,6 @@ private:
 	void 	AssignRbs();
 	void 	AssignRelayNodes();
 	void 	Send(Ptr<HdPacket> &con);
-	// bool 	InAccess(const Ptr<HdVehicleInfo> vehicleInfo);		// If a vehicle in the m_accessLog
 	unsigned int 	m_rsuId;
 	double		m_xLabel;
 	double 		m_yLabel;
@@ -39,8 +36,7 @@ private:
 	Ptr<HdRsuScenario> 	m_hdSce;		// The Ptr of the scenario manager
 	std::vector<unsigned int> 	m_zoneId;	// The start pos of a zone is x=zoneId*200, and the rb id of a zone is (zoneId%3)*16~ (zoneId%3)*16+15
 	std::vector<unsigned int> 	m_usedRb;	// Rbs are assigned from little to large successively, Round Robin, m_usedRb has the same size with m_zoneId
-	// std::string 	m_leftZoneId;
-	// std::string	m_rightZoneId;
+	
 	std::map<unsigned int, std::vector<unsigned int> > 	m_assignRb;		// Key is vehicleId, value is its assigned rbs
 	std::vector<unsigned int> 	m_assignRelayNode;	// VehicleId
 	std::vector<unsigned int> 	m_lastRelayNode;	// VehicleId

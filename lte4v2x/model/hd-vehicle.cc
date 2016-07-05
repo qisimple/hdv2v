@@ -12,6 +12,7 @@ HdVehicle::HdVehicle(HdVehicleParameter &par, HdRsuScenario *hdSce)
 :m_relayNode(false),
 m_totalPacketNum(0),
 m_efficientPacketNum(0),
+m_actualSendPacketNum(0),
 m_failPacketNum(0),
 m_totalReceivePacketNum(0),
 m_nextPacketId(0),
@@ -62,7 +63,7 @@ void 	HdVehicle::Update()
 	{
 		if( t%2 == 0)
 		{
-			// 	Wait to receive warnings
+			// 	Wait to receive warnings and store it.
 		}
 		else
 		{
@@ -83,12 +84,12 @@ void 	HdVehicle::Update()
 			}
 			else
 			{
-				// Do nothing
+				// Wait to receive warnings
 			}			
 		}
 		else
 		{
-			// Wait to receive control messages
+			// Wait to receive control messages and relay messages
 		}
 
 	}
@@ -183,8 +184,8 @@ void 	HdVehicle::SendAccessPacket()
 
 void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLog according to the number of m_accessLog, add to m_packetSentLog
 {
-	unsigned int t = Simulator::Now().GetMilliSeconds();
-	std::cout<<t<<"  "<<"get into HdVehicle::SendWarningsPacket"<<std::endl;
+	// unsigned int t = Simulator::Now().GetMilliSeconds();
+	// std::cout<<t<<"  "<<"get into HdVehicle::SendWarningsPacket"<<std::endl;
 	std::vector<unsigned int>::iterator it_rb;
 	unsigned int i;
 	unsigned int m =0;
@@ -203,14 +204,15 @@ void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLo
 		m_packetSentLog.push_back(m_packetNotSentLog[i]);
 		Send(hd);
 	}
+	m_actualSendPacketNum += m;
 	m_packetNotSentLog.erase(m_packetNotSentLog.begin(),m_packetNotSentLog.begin()+i);
 	m_accessLog.clear();
 }
 
 void	HdVehicle::SendRelayPacket()
 {
-	unsigned int t = Simulator::Now().GetMilliSeconds();
-	std::cout<<t<<"  "<<"get into HdVehicle::SendRelayPacket"<<std::endl;
+	// unsigned int t = Simulator::Now().GetMilliSeconds();
+	// std::cout<<t<<"  "<<"get into HdVehicle::SendRelayPacket"<<std::endl;
 	std::vector<WarningsInfo> relay;
 	for(unsigned int i=0;i<m_packetRelayLog.size();i++)
 	{
@@ -229,6 +231,10 @@ unsigned int HdVehicle::GetVehicleId()
 {
 	return m_vehicleId;
 }
+unsigned int HdVehicle::GetTotalDelay()
+{
+	return m_totalDelay;
+}
 int 	HdVehicle::GetTotalPacketNum()
 {
 	return m_totalPacketNum;
@@ -236,6 +242,10 @@ int 	HdVehicle::GetTotalPacketNum()
 int 	HdVehicle::GetEfficientPacketNum()
 {
 	return m_efficientPacketNum;
+}
+int 	HdVehicle::GetActualSendPacketNum()
+{
+	return m_actualSendPacketNum;
 }
 int 	HdVehicle::GetFailPacketNum()
 {
@@ -245,9 +255,17 @@ int 	HdVehicle::GetTotalReceivePacketNum()
 {
 	return m_totalReceivePacketNum;
 }
+int 	HdVehicle::GetNotSentPacketNum()
+{
+	return m_packetNotSentLog.size();
+}
 double HdVehicle::GetXLabel()
 {
 	return 	m_xLabel;
+}
+double HdVehicle::GetYLabel()
+{
+	return 	m_yLabel;
 }
 
 bool 	HdVehicle::IfSurround(double x, double y)		// Assume AR is 200m
@@ -272,6 +290,7 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 		{
 			m_packetSentLog.erase(it_sent);
 			m_failPacketNum++;
+			m_totalDelay += m_validTime;
 		}
 		else
 		{
@@ -286,6 +305,7 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 		{
 			m_packetNotSentLog.erase(it_not);
 			m_failPacketNum++;
+			m_totalDelay += m_validTime;
 		}
 		else
 		{
@@ -297,7 +317,7 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 	for(it_relay=m_packetRelayLog.begin();it_relay!=m_packetRelayLog.end();)
 	{
 		Ptr<WarningsPacket> war = DynamicCast<WarningsPacket>(*it_relay);
-		if( war->GetTime() <= Simulator::Now().GetMilliSeconds())
+		if( war->GetTime() < Simulator::Now().GetMilliSeconds())
 		{
 			m_packetRelayLog.erase(it_relay);
 		}

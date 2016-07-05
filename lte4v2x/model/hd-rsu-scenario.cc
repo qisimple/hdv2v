@@ -6,11 +6,11 @@
 
 namespace ns3{
 
-HdRsuScenario::HdRsuScenario(const std::string &traceFile, const std::string &parFile)
+HdRsuScenario::HdRsuScenario(const std::string &traceFile, const std::string &parFile, double sendProbility)
 :m_traceFile(traceFile),
 m_parFile(parFile),
 m_validTime(0),
-m_sendProbility(0),
+m_sendProbility(sendProbility),
 m_vehicleInfo(),
 m_rsuInfo(),
 m_hdVehRsu()
@@ -36,21 +36,77 @@ TO Be Finished
 */
 void 	HdRsuScenario::CalculateResult()
 {
-	std::cout<<"get into HdRsuScenario::CalculateResult()"<<std::endl;
+	// std::cout<<"get into HdRsuScenario::CalculateResult()"<<std::endl;
 	std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
+	
+	// Calculate Reliability, from the receiver's point of view
+	double reliability = 0;
+	unsigned int surroundPacketNum = 0;
+	double x = 0;
+	double y = 0;
+	unsigned int receivedPacketNum = 0;
+	bool res = true;
+	// Choose the first vehicle as reference vehicle and calculate its surrounded vehicles
+	for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)			
+	{
+		for(unsigned int i=0;i<(it->second).size();i++)
+		{
+			if((it->second)[i]->GetXLabel() < 1000)
+			{
+				if(i == 0 && res)
+				{
+					x = (it->second)[i]->GetXLabel();
+					y = (it->second)[i]->GetYLabel();
+					receivedPacketNum = (it->second)[i]->GetTotalReceivePacketNum();
+					res = false;
+				}
+				else
+				{
+					if((it->second)[i]->IfSurround(x, y))
+					{
+						surroundPacketNum += (it->second)[i]->GetActualSendPacketNum();
+					}
+				}
+			}
+		}
+	}
+	reliability = receivedPacketNum/surroundPacketNum;
+	// Calculate timeDelay actual_capacity and require_capacity
+	unsigned int aveTimeDelay = 0;
+	unsigned int actualCapacity = 0;
+	unsigned int requireCapacity = 0;
+	unsigned int vehNum = 0;
 	for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
 	{
 		for(unsigned int i=0;i<(it->second).size();i++)
 		{
-			std::cout << "vehicleId:"<<(it->second)[i]->GetVehicleId()<<" "
-				<<"GetTotalPacketNum:"<<(it->second)[i]->GetTotalPacketNum()<<" "
-				<<"GetEfficientPacketNum:"<<(it->second)[i]->GetEfficientPacketNum()<<" "
-				<<"GetFailPacketNum:"<<(it->second)[i]->GetFailPacketNum()<<" "
-				<<"GetTotalReceivePacketNum:"<<(it->second)[i]->GetTotalReceivePacketNum()<<" "
-				<<"m_xLabel:"<<(it->second)[i]->GetXLabel()<<" "
-				<<std::endl;
+			if((it->second)[i]->GetXLabel() < 1000)
+			{
+				vehNum ++;
+				aveTimeDelay += (it->second)[i]->GetTotalDelay();
+				actualCapacity += (it->second)[i]->GetActualSendPacketNum();
+				requireCapacity += (it->second)[i]->GetTotalPacketNum();
+			}
+			// std::cout << "vehicleId:"<<(it->second)[i]->GetVehicleId()<<" "
+			// 	<<"GetTotalPacketNum:"<<(it->second)[i]->GetTotalPacketNum()<<" "
+			// 	<<"GetEfficientPacketNum:"<<(it->second)[i]->GetEfficientPacketNum()<<" "
+			// 	<<"GetActualSendPacketNum:"<<(it->second)[i]->GetActualSendPacketNum()<<" "
+			// 	<<"GetFailPacketNum:"<<(it->second)[i]->GetFailPacketNum()<<" "
+			// 	<<"GetTotalReceivePacketNum:"<<(it->second)[i]->GetTotalReceivePacketNum()<<" "
+			// 	<<"GetNotSentPacketNum:"<<(it->second)[i]->GetNotSentPacketNum()<<" "
+			// 	<<"all:"<<(it->second)[i]->GetTotalPacketNum() - (it->second)[i]->GetActualSendPacketNum() - (it->second)[i]->GetNotSentPacketNum() - (it->second)[i]->GetFailPacketNum()<<" "
+			// 	<<"m_xLabel:"<<(it->second)[i]->GetXLabel()<<" "
+			// 	<<std::endl;
 		}
 	}
+	// Print result
+	std::cout << "vehNum:"<<vehNum<<" "
+		<<"sendProbility:"<<m_sendProbility<<" "
+		<<"reliability:"<<reliability<<" "
+		<<"actualCapacity:"<<actualCapacity<<" "
+		<<"requireCapacity:"<<requireCapacity<<" "
+		<<"aveTimeDelay:"<<aveTimeDelay/requireCapacity<<" "
+		<<std::endl;
 }
 
 void 	HdRsuScenario::ParseTraceFile()
@@ -113,7 +169,6 @@ void 	HdRsuScenario::ParseParFile()
 {
 	// std::cout<<"get into HdRsuScenario::ParseParFile()"<<std::endl;
 	m_validTime = 10;
-	m_sendProbility = 0.1;
 	double xLabel = 500;
 	double yLabel = 0;
 	for(unsigned int i=0; i<3; i++)	// configure m_rsuInfo

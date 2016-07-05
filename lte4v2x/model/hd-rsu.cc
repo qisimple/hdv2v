@@ -79,8 +79,8 @@ void 	HdRsu::ReceiveHdPacket(Ptr<HdPacket> &msg)
 
 void 	HdRsu::SendControlPacket()
 {
-	unsigned int t = Simulator::Now().GetMilliSeconds();
-	std::cout<<t<<"  "<<"get into HdRsu::SendControlPacket"<<std::endl;
+	// unsigned int t = Simulator::Now().GetMilliSeconds();
+	// std::cout<<t<<"  "<<"get into HdRsu::SendControlPacket"<<std::endl;
 	Ptr<ControlPacket> con = Create<ControlPacket>();
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it_rb;	
 	for(it_rb=m_assignRb.begin();it_rb!=m_assignRb.end();++it_rb)
@@ -98,12 +98,6 @@ void 	HdRsu::SendControlPacket()
 	m_usedRb.clear();
 	m_accessLog.clear();
 }
-
-// void 	HdRsu::SendNotifyBroadcastVehiclesPacket()
-// {}
-
-// void 	HdRsu::SendRelayPacket()
-// {}
 
 unsigned int 	HdRsu::GetRsuId()
 {
@@ -147,10 +141,10 @@ void	HdRsu::AssignRbs()		// Round Robin
 {
 	std::map<unsigned int, std::vector<unsigned int> >::iterator it;
 	std::vector<AccessInfo>::iterator 	it_a;
-	std::cout<<"m_accessLog[0].size"<<m_accessLog[0].size()
-		<<"m_accessLog[1].size"<<m_accessLog[1].size()
-		<<"rsuId:"<<m_rsuId
-		<<std::endl;
+	// std::cout<<"m_accessLog[0].size"<<m_accessLog[0].size()
+	// 	<<"m_accessLog[1].size"<<m_accessLog[1].size()
+	// 	<<"rsuId:"<<m_rsuId
+	// 	<<std::endl;
 	for(unsigned int i=0;i<m_accessLog.size();i++)
 	{
 		bool res = true;
@@ -258,40 +252,16 @@ void 	HdRsu::AssignRelayNodes()	// Best fit vehicle, (Position, not involved in 
 	m_lastRelayNode.clear();
 	m_lastRelayNode = m_assignRelayNode;
 	
-	unsigned int t = Simulator::Now().GetMilliSeconds();
-	std::cout<<t<<"  "<<"get into HdRsu::AssignRelayNodes"
-		<<"size:"<<m_assignRelayNode.size()
-		<<std::endl;
+	// unsigned int t = Simulator::Now().GetMilliSeconds();
+	// std::cout<<t<<"  "<<"get into HdRsu::AssignRelayNodes"
+	// 	<<"size:"<<m_assignRelayNode.size()
+	// 	<<std::endl;
 }
 
-void 	HdRsu::Send(Ptr<HdPacket> &con)			// TO BE CONTINUE
+void 	HdRsu::Send(Ptr<HdPacket> &con)
 {
 	// std::cout<<"get into HdRsu::Send"<<std::endl;
 	m_hdSce->DoSend(con, m_rsuId, BROADCAST);
 }
-
-// bool	HdRsu::InAccess(const Ptr<HdVehicleInfo> vehicleInfo)
-// {
-// 	// std::cout<<"get into HdRsu::InAccess"<<std::endl;
-// 	bool 	res = false;
-// 	double 	x = vehicleInfo->xLabel;
-// 	unsigned int i;
-// 	for(i=0;i<m_zoneId.size();i++)
-// 	{
-// 		if(x<(m_zoneId[i]+1)*200 && x>=m_zoneId[i]*200)
-// 		{
-// 			break;
-// 		}
-// 	}
-// 	for(unsigned int j=0;j<m_accessLog[i].size();j++)
-// 	{
-// 		if(vehicleInfo->vehicleId == m_accessLog[i][j].m_vehicleId)
-// 		{
-// 			res = true;
-// 			break;
-// 		}
-// 	}
-// 	return res;
-// }
 
 }//namespace ns3
