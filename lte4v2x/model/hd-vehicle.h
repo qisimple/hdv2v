@@ -31,6 +31,7 @@ public:
 	int 	GetFailPacketNum();
 	int 	GetTotalReceivePacketNum();
 	int 	GetNotSentPacketNum();
+	int 	GetNotRelayPacketNum();
 	double GetXLabel();
 	double GetYLabel();
 	bool 	IfSurround(double x,double y);

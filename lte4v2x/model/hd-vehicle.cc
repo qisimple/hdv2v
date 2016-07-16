@@ -259,6 +259,10 @@ int 	HdVehicle::GetNotSentPacketNum()
 {
 	return m_packetNotSentLog.size();
 }
+int 	HdVehicle::GetNotRelayPacketNum()
+{
+	return m_packetSentLog.size();
+}
 double HdVehicle::GetXLabel()
 {
 	return 	m_xLabel;

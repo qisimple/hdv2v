@@ -75,6 +75,8 @@ void 	HdRsuScenario::CalculateResult()
 	unsigned int aveTimeDelay = 0;
 	unsigned int actualCapacity = 0;
 	unsigned int requireCapacity = 0;
+	unsigned int notSentPacketNum = 0;
+	unsigned int notRelayPacketNum = 0;
 	unsigned int vehNum = 0;
 	for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();++it)
 	{
@@ -86,6 +88,8 @@ void 	HdRsuScenario::CalculateResult()
 				aveTimeDelay += (it->second)[i]->GetTotalDelay();
 				actualCapacity += (it->second)[i]->GetActualSendPacketNum();
 				requireCapacity += (it->second)[i]->GetTotalPacketNum();
+				notSentPacketNum += (it->second)[i]->GetNotSentPacketNum();
+				notRelayPacketNum += (it->second)[i]->GetNotRelayPacketNum();
 			}
 			// std::cout << "vehicleId:"<<(it->second)[i]->GetVehicleId()<<" "
 			// 	<<"GetTotalPacketNum:"<<(it->second)[i]->GetTotalPacketNum()<<" "
@@ -105,7 +109,7 @@ void 	HdRsuScenario::CalculateResult()
 		<<"reliability:"<<reliability<<" "
 		<<"actualCapacity:"<<actualCapacity<<" "
 		<<"requireCapacity:"<<requireCapacity<<" "
-		<<"aveTimeDelay:"<<aveTimeDelay/requireCapacity<<" "
+		<<"aveTimeDelay:"<<aveTimeDelay/(requireCapacity - notRelayPacketNum - notSentPacketNum)<<" "
 		<<std::endl;
 }
 
