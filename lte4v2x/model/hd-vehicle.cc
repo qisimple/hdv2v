@@ -313,6 +313,7 @@ void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLo
 {
 	// unsigned int t = Simulator::Now().GetMilliSeconds();
 	// std::cout<<t<<"  "<<"get into HdVehicle::SendWarningsPacket"<<std::endl;
+	unsigned int t = Simulator::Now().GetMilliSeconds();		// Check if MilliSecondes() exists in ns3
 	std::vector<unsigned int>::iterator it_rb;
 	unsigned int i;
 	unsigned int m =0;
@@ -344,10 +345,12 @@ void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLo
 			if(m_accessLog[i] % 32 <=15)
 			{
 				Send(hd);
+				m_totalDelay += t - m_packetNotSentLog[i]->GetTime() + m_validTime;
 			}
 			else
 			{
 				Simulator::Schedule(Seconds(0.001), &HdVehicle::Send, this, hd);
+				m_totalDelay += t - m_packetNotSentLog[i]->GetTime() + m_validTime +1;
 			}
 		}
 	}
