@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
 	cmd.AddValue("mode","Tell which mode it is, 0 means hd-transfer mode, 1 means non-transfer mode",mode);	
 	cmd.Parse(argc, argv);
 
- 	if(sendProbility > 1)
+ 	if(sendProbility > 0.1)
  	{
 	 	sendProbility = sendProbility/100;
  	}
