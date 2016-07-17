@@ -16,7 +16,7 @@ class 	HdRsuScenario;
 class HdRsu:public SimpleRefCount<HdRsu>
 {
 public:
-	HdRsu( unsigned int rsuId, double xLabel, double yLabel, std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, HdRsuScenario *hdSce);
+	HdRsu( HdRsuParameter &par, std::vector<unsigned int> &zoneId, std::vector<Ptr<HdVehicleInfo> > &vehInfo, HdRsuScenario *hdSce);
 	~HdRsu();
 	void 	Update();
 	void 	ReceiveHdPacket(Ptr<HdPacket> &msg);
@@ -32,6 +32,7 @@ private:
 	unsigned int 	m_rsuId;
 	double		m_xLabel;
 	double 		m_yLabel;
+	HdTransferMode	m_hdMode;
 	bool 	m_status;		// True means access states, false means control states
 	Ptr<HdRsuScenario> 	m_hdSce;		// The Ptr of the scenario manager
 	std::vector<unsigned int> 	m_zoneId;	// The start pos of a zone is x=zoneId*200, and the rb id of a zone is (zoneId%3)*16~ (zoneId%3)*16+15

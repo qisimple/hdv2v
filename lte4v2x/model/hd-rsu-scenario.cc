@@ -10,6 +10,7 @@ HdRsuScenario::HdRsuScenario(const std::string &traceFile, const std::string &pa
 :m_traceFile(traceFile),
 m_parFile(parFile),
 m_validTime(0),
+m_hdMode(),
 m_sendProbility(sendProbility),
 m_vehicleInfo(),
 m_rsuInfo(),
@@ -70,9 +71,9 @@ void 	HdRsuScenario::CalculateResult()
 			}
 		}
 	}
-	reliability = receivedPacketNum/surroundPacketNum;
+	reliability = (double)receivedPacketNum/surroundPacketNum;
 	// Calculate timeDelay actual_capacity and require_capacity
-	unsigned int aveTimeDelay = 0;
+	double 	aveTimeDelay = 0;
 	unsigned int actualCapacity = 0;
 	unsigned int requireCapacity = 0;
 	unsigned int notSentPacketNum = 0;
@@ -107,6 +108,8 @@ void 	HdRsuScenario::CalculateResult()
 	std::cout << "vehNum:"<<vehNum<<" "
 		<<"sendProbility:"<<m_sendProbility<<" "
 		<<"reliability:"<<reliability<<" "
+		// <<"receivedPacketNum:"<<receivedPacketNum<<" "
+		// <<"surroundPacketNum:"<<surroundPacketNum<<" "
 		<<"actualCapacity:"<<actualCapacity<<" "
 		<<"requireCapacity:"<<requireCapacity<<" "
 		<<"aveTimeDelay:"<<aveTimeDelay/(requireCapacity - notRelayPacketNum - notSentPacketNum)<<" "
@@ -173,6 +176,8 @@ void 	HdRsuScenario::ParseParFile()
 {
 	// std::cout<<"get into HdRsuScenario::ParseParFile()"<<std::endl;
 	m_validTime = 10;
+	m_hdMode = RSU_ASSIST;
+	// m_hdMode = NO_TRANSFER;
 	double xLabel = 500;
 	double yLabel = 0;
 	for(unsigned int i=0; i<3; i++)	// configure m_rsuInfo
@@ -242,7 +247,8 @@ void	HdRsuScenario::Init()
 				vehInfo.push_back(m_vehicleInfo[k]);
 			}
 		}
-		Ptr<HdRsu> rsu = Create<HdRsu>(m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, zoneId, vehInfo, this);
+		HdRsuParameter par = {m_rsuInfo[i]->rsuId, m_rsuInfo[i]->xLabel, m_rsuInfo[i]->yLabel, m_hdMode};
+		Ptr<HdRsu> rsu = Create<HdRsu>(par, zoneId, vehInfo, this);
 		std::vector<Ptr<HdVehicle> > v;
 		m_hdVehRsu.insert(std::make_pair<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >(rsu, v));
 	}
@@ -266,7 +272,7 @@ void	HdRsuScenario::Init()
 		{
 			// Beyond 
 		}
-		HdVehicleParameter par = {rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility};
+		HdVehicleParameter par = {rsuId, m_vehicleInfo[i]->vehicleId, m_validTime, m_vehicleInfo[i]->xLabel, m_vehicleInfo[i]->yLabel, m_vehicleInfo[i]->velocity, m_sendProbility, m_hdMode};
 		Ptr<HdVehicle> veh = Create<HdVehicle>(par, this);
 		std::map<Ptr<HdRsu>, std::vector<Ptr<HdVehicle> > >::iterator it;
 		for(it=m_hdVehRsu.begin();it!=m_hdVehRsu.end();it++)

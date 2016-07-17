@@ -31,6 +31,7 @@ private:
 	std::string 	m_traceFile;		//  Sumo trace file
 	std::string 	m_parFile;		// Configure file
 	unsigned int 	m_validTime;
+	HdTransferMode 	m_hdMode;
 	double 	m_sendProbility;		// We get this from configure file
 
 	std::vector<Ptr<HdVehicleInfo> > 	m_vehicleInfo;

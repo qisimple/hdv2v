@@ -37,9 +37,13 @@ public:
 	bool 	IfSurround(double x,double y);
 private:
 	void 	UpdateLog();
+	void 	StatusGoBack();
 	void 	Send(Ptr<HdPacket> &hd);
 	// std::string 	m_zoneId;
 	bool 	m_relayNode;		// If it is assigned as relayNode, first bit;	00 -> access; 10 -> control; 11 -> listen; 01 -> relay;
+	bool 	m_status;		// If it got rb from control packet, then status is true, it won't send access until status change to false;
+	bool 	m_hasToSend1;	// If it got rbs to send warnings, if it has warnings to send in first slot, then m_hasToSend1 is true;
+	bool 	m_hasToSend2;
 	unsigned int 	m_rsuId;		// the rsu it belongs to
 	unsigned int	m_vehicleId;
 	unsigned int	m_validTime;		// Unit is ms
@@ -47,6 +51,7 @@ private:
 	double 	m_yLabel;
 	double 	m_velocity;	// velocity of vehicle
 	double 	m_sendProbility;
+	HdTransferMode	m_hdMode;
 	int	m_totalPacketNum;	
 	int 	m_efficientPacketNum;		// If all vehicles in its AR correctly receive the packet, access packet is not involved
 	int 	m_actualSendPacketNum;

@@ -29,6 +29,13 @@ enum PriorityType
 	LOW			// Normal 
 };
 
+enum HdTransferMode
+{
+	RSU_ASSIST,
+	CAR_TRANSFER,
+	NO_TRANSFER
+};
+
 class 	HdPacket:public SimpleRefCount<HdPacket>
 {
 public:
@@ -196,6 +203,16 @@ struct HdVehicleParameter
 	double yLabel;
 	double velocity;
 	double sendProbility;
+	HdTransferMode 	hdMode;
+	/* data */
+};
+
+struct HdRsuParameter
+{
+	unsigned int rsuId;
+	double xLabel;
+	double yLabel;
+	HdTransferMode 	hdMode;
 	/* data */
 };
 

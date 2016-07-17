@@ -14,10 +14,6 @@ def build(bld):
         'model/hd-vehicle.cc',
         'model/hd-packet.cc',
         'model/hd-rsu-scenario.cc',
-        'model/no-hd-rsu.cc',
-        'model/no-hd-vehicle.cc',
-        'model/no-hd-packet.cc',
-        'model/no-hd-rsu-scenario.cc',
         'helper/lte4v2x-helper.cc',
         ]
 
@@ -34,10 +30,6 @@ def build(bld):
         'model/hd-vehicle.h',
         'model/hd-packet.h',
         'model/hd-rsu-scenario.h',
-        'model/no-hd-rsu.h',
-        'model/no-hd-vehicle.h',
-        'model/no-hd-packet.h',
-        'model/no-hd-rsu-scenario.h',
         'helper/lte4v2x-helper.h',
         ]
 

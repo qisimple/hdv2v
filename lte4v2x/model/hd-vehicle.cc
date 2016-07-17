@@ -10,6 +10,9 @@ namespace ns3{
 
 HdVehicle::HdVehicle(HdVehicleParameter &par, HdRsuScenario *hdSce)
 :m_relayNode(false),
+m_status(false),
+m_hasToSend1(false),
+m_hasToSend2(false),
 m_totalPacketNum(0),
 m_efficientPacketNum(0),
 m_actualSendPacketNum(0),
@@ -31,6 +34,7 @@ m_packetRelayLog()
 	m_yLabel = par.yLabel;
 	m_velocity = par.velocity;
 	m_sendProbility = par.sendProbility;
+	m_hdMode = par.hdMode;
 	Update();
 }
 HdVehicle::~HdVehicle(){}
@@ -59,40 +63,87 @@ void 	HdVehicle::Update()
 		m_totalPacketNum++;
 	}
 
-	if(m_relayNode)
+	switch (m_hdMode)
 	{
-		if( t%2 == 0)
+		case RSU_ASSIST:
 		{
-			// 	Wait to receive warnings and store it.
-		}
-		else
-		{
-			Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendRelayPacket, this);
-		}
-	}
-	else
-	{
-		if(t%2 == 0)
-		{
-			if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()>0))			// Necessary to access the channel;
+			if(m_relayNode)
 			{
-				Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendWarningsPacket, this);
-			}
-			else if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()==0))
-			{
-				Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendAccessPacket, this);		// Send at the begining of time slot, and Rsu suppose to receive at the end of the same time slot
+				if( t%2 == 0)
+				{
+					// 	Wait to receive warnings and store it.
+				}
+				else
+				{
+					Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendRelayPacket, this);
+				}
 			}
 			else
 			{
-				// Wait to receive warnings
-			}			
-		}
-		else
-		{
-			// Wait to receive control messages and relay messages
-		}
+				if(t%2 == 0)
+				{
+					if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()>0))			// Necessary to access the channel;
+					{
+						Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendWarningsPacket, this);
+					}
+					else if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()==0))
+					{
+						Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendAccessPacket, this);		// Send at the begining of time slot, and Rsu suppose to receive at the end of the same time slot
+					}
+					else
+					{
+						// Wait to receive warnings
+					}			
+				}
+				else
+				{
+					// Wait to receive control messages and relay messages
+				}
 
+			}
+			break;			
+		}
+		case NO_TRANSFER:
+		{
+			if(m_status)
+			{
+				if(t%2 == 0)
+				{
+					Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendWarningsPacket, this);
+				}
+				if(t%2 == 1)
+				{
+					Simulator::Schedule(Seconds(0.0001), &HdVehicle::StatusGoBack, this);
+				}
+			}
+			else
+			{
+				if(t%2 == 0)
+				{
+					if((m_packetNotSentLog.size()>0)&&(m_accessLog.size()==0))
+					{
+						Simulator::Schedule(Seconds(0.0001), &HdVehicle::SendAccessPacket, this);
+					}
+					else
+					{
+						// No access need
+					}
+				}
+				else
+				{
+					// Wait to receive control messages
+				}
+			}
+			break;	
+		}
+		default:
+		{
+			std::cout<<"Error Transfer Mode!"<<std::endl;
+		}
+		
 	}
+
+
 	Simulator::Schedule(Seconds(0.001), &HdVehicle::Update, this);
 }
 
@@ -104,60 +155,136 @@ void 	HdVehicle::ReceiveHdPacket(Ptr<HdPacket> &msg)
 	{
 		case CONTROL_PACKET:
 		{
-			if(m_relayNode == false && t%2 == 1)
+			if (m_hdMode == RSU_ASSIST)
 			{
-				Ptr<ControlPacket>	con = DynamicCast<ControlPacket>(msg);
-				m_accessLog.clear();
-				m_accessLog = con->GetRb(m_vehicleId);
-				m_relayNode = con->GetRelayNode(m_vehicleId);
-			}
-			else
-			{
-				// Abundon the packets;
-			}
-			break;
-		}
-		case WARNINGS_PACKET:
-		{
-			Ptr<WarningsPacket>	war = DynamicCast<WarningsPacket>(msg);
-			if(m_relayNode == true && t%2 == 0)
-			{
-				m_packetRelayLog.push_back(msg);
-			}
-			else
-			{
-				// Abundon the packets;
-			}
-			m_totalReceivePacketNum++;	// A vehicle send access while others are broadcasting, it will miss the packet. But it will receive it from RelayPacket.
-			break;
-		}
-		case RELAY_PACKET:		// Check the m_packetSentLog, if m_packetSentLog in relayPacket,then take it as a success else take it as a failure;
-		{
-			if(m_relayNode == false && t%2 == 1)
-			{
-				Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
-				std::vector<Ptr<WarningsPacket> >::iterator it;
-				for(it = m_packetSentLog.begin();it!=m_packetSentLog.end();)
+				if(m_relayNode == false && t%2 == 1)
 				{
-					unsigned int v = (*it)->GetVehicleId();
-					unsigned int p = (*it)->GetPacketId();
-					if(relay->GetExist(v,p))
+					Ptr<ControlPacket>	con = DynamicCast<ControlPacket>(msg);
+					m_accessLog.clear();
+					m_accessLog = con->GetRb(m_vehicleId);
+					m_relayNode = con->GetRelayNode(m_vehicleId);
+				}
+				else
+				{
+					// Abundon the packets;
+				}			
+			}
+			else if(m_hdMode == NO_TRANSFER)		// 
+			{
+				if(m_status == false && t%2 == 1)
+				{
+					Ptr<ControlPacket>	con = DynamicCast<ControlPacket>(msg);
+					m_accessLog.clear();
+					m_accessLog = con->GetRb(m_vehicleId);
+					if(m_accessLog.size() > 0)
 					{
-						m_efficientPacketNum++;
-						unsigned int t = Simulator::Now().GetMilliSeconds();
-						m_totalDelay += t + m_validTime - (*it)->GetTime();
-						m_packetSentLog.erase(it);
+						m_status = true;
 					}
-					else
+					for(unsigned int i=0;i<m_accessLog.size();i++)
 					{
-						++it;
+						if(m_accessLog[i] % 32 <=15)
+						{
+							m_hasToSend1 = true;
+						}
+						if(m_accessLog[i] % 32 >15)
+						{
+							m_hasToSend2 = true;
+						}
 					}
 				}
 			}
 			else
 			{
-				// Abundon the packets
+				std::cout<<"Error Transfer Mode!"<<std::endl;
 			}
+			break;
+		}
+		case WARNINGS_PACKET:
+		{
+			if (m_hdMode == RSU_ASSIST)
+			{
+				Ptr<WarningsPacket>	war = DynamicCast<WarningsPacket>(msg);
+				if(m_relayNode == true && t%2 == 0)
+				{
+					m_packetRelayLog.push_back(msg);
+				}
+				else
+				{
+					// Abundon the packets;
+				}
+				m_totalReceivePacketNum++;	// A vehicle send access while others are broadcasting, it will miss the packet. But it will receive it from RelayPacket.	
+			}
+			else if(m_hdMode == NO_TRANSFER)		// Decide if it can accept this message according ot status
+			{
+				if(m_status)
+				{
+					if(t%2 == 0 && m_hasToSend1 == false)
+					{
+						m_totalReceivePacketNum++;
+						// std::cout<<"receive warnings"<<std::endl;
+					}
+					if(t%2 == 1 && m_hasToSend2 == false)
+					{
+						m_totalReceivePacketNum++;
+						// std::cout<<"receive warnings"<<std::endl;
+					}
+				}
+				else
+				{
+					if(t%2 == 0 &&  m_packetNotSentLog.size()==0)
+					{
+						m_totalReceivePacketNum++;
+						// std::cout<<"receive warnings"<<std::endl;
+					}
+					if(t%2 == 1)
+					{
+						m_totalReceivePacketNum++;
+						// std::cout<<"receive warnings"<<std::endl;
+					}
+				}
+			}
+			else
+			{
+				std::cout<<"Error Transfer Mode!"<<std::endl;
+			}
+			break;
+		}
+		case RELAY_PACKET:		// Check the m_packetSentLog, if m_packetSentLog in relayPacket,then take it as a success else take it as a failure;
+		{
+			if (m_hdMode == RSU_ASSIST)
+			{
+				if(m_relayNode == false && t%2 == 1)
+				{
+					Ptr<RelayPacket>	relay = DynamicCast<RelayPacket>(msg);
+					std::vector<Ptr<WarningsPacket> >::iterator it;
+					for(it = m_packetSentLog.begin();it!=m_packetSentLog.end();)
+					{
+						unsigned int v = (*it)->GetVehicleId();
+						unsigned int p = (*it)->GetPacketId();
+						if(relay->GetExist(v,p))
+						{
+							m_efficientPacketNum++;
+							unsigned int t = Simulator::Now().GetMilliSeconds();
+							m_totalDelay += t + m_validTime - (*it)->GetTime();
+							m_packetSentLog.erase(it);
+						}
+						else
+						{
+							++it;
+						}
+					}
+				}
+				else
+				{
+					// Abundon the packets
+				}	
+				/* code */
+			}
+			else
+			{
+				std::cout<<"Error Transfer Mode!"<<std::endl;
+			}
+
 			break;
 		}
 		default:
@@ -197,13 +324,34 @@ void 	HdVehicle::SendWarningsPacket()		// Select Warnings from m_packetNotSentLo
 	{
 		m = m_accessLog.size();
 	}
-	for(i=0;i<m;i++)
+
+	if (m_hdMode == RSU_ASSIST)
 	{
-		m_packetNotSentLog[i]->SetRb(m_accessLog[i]);
-		Ptr<HdPacket> hd = m_packetNotSentLog[i];
-		m_packetSentLog.push_back(m_packetNotSentLog[i]);
-		Send(hd);
+		for(i=0;i<m;i++)
+		{
+			m_packetNotSentLog[i]->SetRb(m_accessLog[i]);
+			Ptr<HdPacket> hd = m_packetNotSentLog[i];
+			m_packetSentLog.push_back(m_packetNotSentLog[i]);
+			Send(hd);
+		}		
 	}
+	else if(m_hdMode == NO_TRANSFER)		//  if rbid mod 32 larger than 15, then it shall be used in the next slot
+	{
+		for(i=0;i<m;i++)
+		{
+			m_packetNotSentLog[i]->SetRb(m_accessLog[i]);
+			Ptr<HdPacket> hd = m_packetNotSentLog[i];
+			if(m_accessLog[i] % 32 <=15)
+			{
+				Send(hd);
+			}
+			else
+			{
+				Simulator::Schedule(Seconds(0.001), &HdVehicle::Send, this, hd);
+			}
+		}
+	}
+
 	m_actualSendPacketNum += m;
 	m_packetNotSentLog.erase(m_packetNotSentLog.begin(),m_packetNotSentLog.begin()+i);
 	m_accessLog.clear();
@@ -317,18 +465,21 @@ void 	HdVehicle::UpdateLog()		// Deal with m_packetNotSentLog m_packetSentLog m_
 		}
 	}
 
-	std::vector<Ptr<HdPacket> >::iterator it_relay;
-	for(it_relay=m_packetRelayLog.begin();it_relay!=m_packetRelayLog.end();)
+	if (m_hdMode == RSU_ASSIST)
 	{
-		Ptr<WarningsPacket> war = DynamicCast<WarningsPacket>(*it_relay);
-		if( war->GetTime() < Simulator::Now().GetMilliSeconds())
+		std::vector<Ptr<HdPacket> >::iterator it_relay;
+		for(it_relay=m_packetRelayLog.begin();it_relay!=m_packetRelayLog.end();)
 		{
-			m_packetRelayLog.erase(it_relay);
-		}
-		else
-		{
-			++it_relay;
-		}
+			Ptr<WarningsPacket> war = DynamicCast<WarningsPacket>(*it_relay);
+			if( war->GetTime() < Simulator::Now().GetMilliSeconds())
+			{
+				m_packetRelayLog.erase(it_relay);
+			}
+			else
+			{
+				++it_relay;
+			}
+		}		
 	}
 }
 
@@ -353,6 +504,13 @@ void 	HdVehicle::Send(Ptr<HdPacket> &hd)			// TO BE CONTINUE,
 			std::cout<<"HdVehicle:Error Wrong Type!"<<hd->GetPacketType()<<std::endl;
 		}
 	}
+}
+
+void 	HdVehicle::StatusGoBack()
+{
+	m_status = false;
+	m_hasToSend1 = false;
+	m_hasToSend2 = false;
 }
 
 }//namespace ns3
