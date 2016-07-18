@@ -169,15 +169,15 @@ void 	HdRsuScenario::ParseTraceFile()
 		assert(file.is_open ());
 	}
 	file.close ();
-	std::cout<<"size:"<<m_vehicleInfo.size()<<std::endl;
+	// std::cout<<"size:"<<m_vehicleInfo.size()<<std::endl;
 }
 
 void 	HdRsuScenario::ParseParFile()
 {
 	// std::cout<<"get into HdRsuScenario::ParseParFile()"<<std::endl;
 	m_validTime = 10;
-	m_hdMode = RSU_ASSIST;
-	// m_hdMode = NO_TRANSFER;
+	// m_hdMode = RSU_ASSIST;
+	m_hdMode = NO_TRANSFER;
 	double xLabel = 500;
 	double yLabel = 0;
 	for(unsigned int i=0; i<3; i++)	// configure m_rsuInfo
